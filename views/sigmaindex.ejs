@@ -1,0 +1,145 @@
+<html>
+<head>
+  <script src="../../sigma.min.js"></script>
+  <script src="../../sigma.layout.forceAtlas2.min.js"></script>
+  <script src="../../sigma.parsers.json.min.js"></script>
+
+
+</head>
+<style>
+  #network-graph {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+  }
+</style>
+<style>
+  #graph0 {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+  }
+</style>
+<style>
+  #graph1 {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+  }
+</style>
+<style>
+  #graph2 {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+  }
+</style>
+<style>
+  #graph3 {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+  }
+</style>
+
+<body>
+
+<h1>Yurt! You have requested to visualise <%=num_block%> blocks starting at <%=block_num %> with SigmaJS</h1>
+
+<br>
+
+<div id = "network-graph"></div>
+<script>
+
+</script>
+<script>
+<% sigmaobj_array.forEach(function(r,i){%>
+var index = <%-i%>;
+console.log("javascript is "+index);
+var iDiv = document.createElement('div');
+var _name="graph".concat(index.toString());
+// console.log("_name is "+_name)
+// console.log("type of name"+typeof(_name))
+iDiv.id=_name;
+document.getElementsByTagName('body')[0].appendChild(iDiv);
+
+<%});%>
+//this is working
+window.onload=function(){
+console.log("script loaded")
+<% sigmaobj_array.forEach(function(r,i){%>
+    console.log("index is "+<%=i%>);
+
+    var sigmaobj = <%- JSON.stringify(r) %>
+    console.log("sigmaobj is "+JSON.stringify(sigmaobj));
+    //dynamically creating divs and then using this to place multiple graphs
+
+    var graphSettings = {
+      minNodeSize: 1,
+      maxNodeSize: 2,
+      // minEdgeSize: 10,
+      // maxEdgeSize: 10,
+      scalingMode: "inside",
+      sideMargin: 10
+    }
+
+    var forceConfig = {
+      worker: true,
+      barnesHutOptimize: true,
+      gravity: 5,
+      // strongGravityMode:true,
+      slowDown: 10
+    }
+
+    var s = new sigma({
+      graph: sigmaobj,
+      container: "graph0",
+      settings: graphSettings
+    })
+    //Start Force Atlas algorithm
+    s.startForceAtlas2(forceConfig);
+    // setTimeout(function() {
+    //   s.stopForceAtlas2();
+    // },120000);
+
+  console.log("script finished")
+
+
+
+<%});%>
+
+
+
+// s = new sigma({
+//   graph: sigmaobj,
+//   container: "network-graph"
+// })
+// s.refresh();
+// s.startForceAtlas2();
+
+
+}//onload
+</script>
+
+
+
+
+
+</body>
+
+
+
+
+
+
+</html>

@@ -1,0 +1,77 @@
+<html>
+<head>
+
+<script>
+
+//   console.log("running file")
+//   var http = new XMLHttpRequest();
+//
+//   http.onreadystatechange = function(){
+//     if(http.readyStatic==4 &&http.status ==200){
+//       document.body.appendchild(http.response)
+//     }
+//   }
+//   http.open("GET", "../temp_res/test.png",true);
+//   http.send();
+//
+// }
+</script>
+<script src="../../viz.js"></script>
+<script src="../../vis.js"></script>
+<link href="../../vis-network.min.css" rel="stylesheet" type="text/css"/>
+
+</head>
+
+<body>
+
+<h1>Yurt! You have requested to visualise <%=num_block%> blocks starting at <%=block_num %> with Graphviz!</h1>
+
+<br>
+<!-- <h2>Here is the graph format</h2>
+<% graph_formats.forEach(function(graph){%>
+  <a> <%=graph.toString() %></a> <%
+})
+%> -->
+
+<div id = "mynetwork"></div>
+
+<script>
+//this is working
+console.log("script loaded")
+<% graph_formats.forEach(function(mem,i){%>
+    console.log("index is "+<%=i%>);
+    var g = <%- JSON.stringify(mem)%>
+    console.log("g is " + g)
+    var gcut = g.slice(1,(g.length-3));
+    console.log("gcut is " + gcut)
+    //comment the below line in for graphviz
+// document.body.innerHTML += Viz(gcut,{totalMemory:67108864}); //returns in svg format! will do multigraph generation
+
+  //the below lines are for vis.js
+  // these are all options in full.
+  var options = {
+    layout: {
+      improvedLayout:false
+    }
+  }
+  var container = document.getElementById('mynetwork');
+  // var dot = 'dinetwork {node[shape=circle]; 1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }'; // sample kept to see format
+  var data = vis.network.convertDot(gcut);
+  var network = new vis.Network(container, data,options);
+  //end of vis.js
+<%});%>
+
+</script>
+
+
+
+
+
+</body>
+
+
+
+
+
+
+</html>

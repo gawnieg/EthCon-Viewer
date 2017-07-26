@@ -1,0 +1,21 @@
+{
+  "name": "towards_deploy",
+  "version": "1.0.0",
+  "main": "generate_graph.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ejs": "^2.5.6",
+    "express": "^4.15.3",
+    "mongo-promise": "0.0.71",
+    "mongodb-promise": "0.0.4",
+    "mongoose": "^4.11.0",
+    "nodemon": "^1.11.0",
+    "viz.js": "^1.8.0",
+    "web3": "^0.19.0"
+  }
+}

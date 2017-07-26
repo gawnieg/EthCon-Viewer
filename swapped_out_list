@@ -1,0 +1,7 @@
+//list of switched variables for modify_json_2
+sLogs -> vmtraceStep
+update_stack_origins -> getNewStackValues
+arg_origins->stepOrigins
+stack_origins->stackArray
+output->modifedJSON
+modify_structLogs->modifyVMTrace

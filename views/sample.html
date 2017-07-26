@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Tiny example</title>
+  </head>
+  <body>
+
+    <script src="../viz.js"></script>
+    <script>
+
+    var test ="digraph{\n0 [label="PUSH4", style=filled, color=antiquewhite]\n1 [label="PUSH1", style=filled, color=antiquewhite]\n2 [label="PUSH1", style=filled, color=antiquewhite]\n3 [label="EXP", style=filled, color=coral4]\n1 -> 3 [label="00000000000000000000000000000000000000000000000000000000000000e0", fontcolor=antiquewhite]\n2 -> 3 [label="0000000000000000000000000000000000000000000000000000000000000002", fontcolor=antiquewhite]\n4 [label="PUSH1", style=filled, color=antiquewhite]\n5 [label="CALLDATALOAD", style=filled, color=darkorchid4]\n4 -> 5 [label="0000000000000000000000000000000000000000000000000000000000000000", fontcolor=antiquewhite]\n6 [label="DIV", style=filled, color=chocolate3]\n3 -> 6 [label="0000000100000000000000000000000000000000000000000000000000000000", fontcolor=antiquewhite]\n5 -> 6 [label="1896f70a8851b17a825ca0cfde09020276ebce9c64cb69476c3b2e27299ccc88", fontcolor=antiquewhite]\n7 [label="EQ", style=filled, color=gold4]" fontcolor=antiquewhite]\n84 [label="JUMP", style=filled, color=burlywood1];\n}\n\n\n\n\n\n";
+
+    document.body.innerHTML += Viz(test);
+    console.log("yurt")
+    </script>
+
+  </body>
+</html>

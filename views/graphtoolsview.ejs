@@ -1,0 +1,59 @@
+<html>
+
+<!-- Page for graph tools static images -->
+
+<body>
+<body style="background-color:#000000">
+</body>
+
+<script>
+var numpics = <%- JSON.stringify(num_pics)%>
+console.log("num_block:"+numpics)
+var block_num = <%- JSON.stringify(block_num)%>
+console.log("num_block:"+block_num)
+var num_block = <%- JSON.stringify(num_block)%>
+console.log("num_block:"+num_block)
+var trans_list = <%- JSON.stringify(trans_list)%>
+console.log("trans_list:"+trans_list)
+// var  <%- JSON.stringify(block_num)%>
+
+var high_limit=parseInt(block_num)+parseInt(num_block)
+
+for(blockd=parseInt(block_num);blockd<high_limit;blockd++){
+  for(i=0;i<parseInt(numpics);i++){
+    var requestpic = "/pics/";
+    requestpic=requestpic.concat(blockd.toString());
+    requestpic=requestpic.concat(".dot");
+    var num = i.toString()
+    requestpic=requestpic.concat(num);
+    requestpic=requestpic.concat(".dot");
+    requestpic=requestpic.concat(".png");
+    var titlestring = requestpic.toString();
+    titlestring = "filepath: "+titlestring;
+    if(trans_list[i]!=null){
+      titlestring=titlestring +"\n"+"transHash: "+ trans_list[i].toString();
+      var etherscan_add = "https://ropsten.etherscan.io/tx/"+trans_list[i];
+    }
+
+
+
+    console.log("looking for pic: " + requestpic)
+    var x = document.createElement("IMG");
+    x.setAttribute("src", requestpic);
+    if(trans_list[i]!=null){
+      x.setAttribute("title",titlestring)
+      x.setAttribute("longdesc",etherscan_add)
+    }
+
+    x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+
+    // x.setAttribute("width", "304");
+    // x.setAttribute("height", "228");
+    document.body.appendChild(x);
+  }
+}
+
+</script>
+
+
+</html>
