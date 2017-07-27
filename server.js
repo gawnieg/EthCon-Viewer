@@ -475,7 +475,7 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
                                 py.stdout.end();
                               }); // on python 'finish'
                             } //end of if
-                          else{ //
+                          else{ // else if no pics need to be generated
                             console.log("already generated graphs for this block")
                             //would usually render here switched to try loop for blocks
                             console.log("rendering to screen, should show "+num_of_pics_to_render)
