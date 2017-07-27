@@ -28,7 +28,7 @@ def main():
 
     #depth_per_block_array=fromstdin[3] # which blocks we got passed
     blocks_to_graphs = fromstdin[4] # which blocks we got passed
-
+    #print("python blocks_to_graphs"+blocks_to_graphs)
     #then load file
     #then split in memory according to "}"
     #then save into seperate files
@@ -60,6 +60,7 @@ def main():
         fileoutpath = str(blocks_to_graphs[i])#not as simple as this!
         fcheckname = "./public/pics/"+fileoutpath+".dot"+str(num_each_block[blocks_to_graphs[i]])+".dot"+".png"
         print("checking to see if graph is already there at "+ fcheckname)
+        print("blocks_to_graphs[i]"+blocks_to_graphs[i])
         isthere = os.path.isfile(fcheckname) # this will be True if there file is already there
         edge_des_color = [0.9,0.9,0.8,0.9]#this is edge colour
         if(isthere==False):
@@ -79,7 +80,12 @@ def main():
             #now actually draw graph and save to folderout
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
             graph_draw(g, vertex_fill_color=v_prop2, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
-        num_each_block[blocks_to_graphs[i]] = num_each_block[blocks_to_graphs[i]] + 1
+            #new section to update mongo to say that the graph has been generated
+
+
+
+
+        num_each_block[blocks_to_graphs[i]] = num_each_block[blocks_to_graphs[i]] + 1 # storing the number of graphs that have been generated for that block num
         i=i+1
         #now delete the file on dis
         print("deleting temp file "+filename)

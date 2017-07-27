@@ -52,7 +52,7 @@ var trans_list_counter=0;
 
 var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
   return new Promise(function(resolve,reject){
-
+    trans_list_counter=0; //reset trans_list_counter
     var res_str="";// string for storing dot format- MAY NOT be right to place here
     var res_str_gml=""; //for graphml format
     var res_str_dot_no_lbl=""; //experimental for python graph tools
@@ -723,17 +723,12 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
             //find transaction ID/hash
             console.log("trans_list_counter: "+trans_list_counter)
             var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
-            //save to db
             //updating trans_list_counter which is a global variable that is sent to find the trans hash
             if(graph_depth==1){
                 if(TwoDarraymodified.length >1)
                   trans_list_counter++;
             }
-
-            // if(TwoDarraymodified.length >1){ //only if we have moved onto a new transaction increment the counter
-            //   trans_list_counter--;
-            // }
-
+            //save to db
             console.log("trace found and graph made - attempting to save to db "+int_trans+"block num: "+_passed_block_num); //graph depth is the memory depth
             db2.save_to_db(_passed_block_num,trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
           } //end of for each depth loop

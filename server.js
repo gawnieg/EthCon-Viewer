@@ -357,6 +357,20 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
                               add_blocks_graph_to_db(get_this_block,1);// 1 is blank does nt matter what
                             }
 
+
+
+
+
+
+                            db.close()
+                          .then(function(){
+
+
+
+
+
+
+
                             num_of_pics_to_render = items.length; // this is then passed out to front end
                             var are_all_graph_pics_ready =[]; //array to store graph_gen_perf values, one position in the array for each block
                             //create arrays for storing the color descriptors - these are sent to the python module
@@ -387,8 +401,12 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
                                 need_to_run_graph_pic_gen=1; // setting variable to true
                               }
                             }
-                            db.close()
-                          .then(function(){
+
+                            console.log("blocks_with_graphs"+blocks_with_graphs)
+
+
+
+
                             if(need_to_run_graph_pic_gen){ //was !graph_gen_perf
                               console.log("generating file name(s), writing file, sending filename to python graph tools which will generate a pic in /public/pics")
                               /*
@@ -493,7 +511,11 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
                     //else database search did not find anything
                     else{
                       console.log("found nothing in DB so adding block no. " +" to db ");
-                      add_blocks_graph_to_db(block_num,1);// 1 is blank does nt matter what
+                      for(bn=block_num_int;bn<last_block_to_search;bn++){
+                          bn=bn.toString()
+                          add_blocks_graph_to_db(bn,1);// 1 is blank does nt matter what was block_num as first param
+                      }
+
                       // res.send("The blocks were not in the database, therefore have been fetched from the blockchain, parsed, etc. Please refresh to generate and view the graph tool visualisation");
                       // res.end();
                       res.render("graph_tools_waiting.ejs"); // page that refreshes after 15 seconds
