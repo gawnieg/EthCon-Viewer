@@ -28,7 +28,7 @@ app.get('/api/vis', function(req, res) {
   var response_graphviz=[];
   var response_sigma =[]; //making array of objects
   for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+    mp.MongoClient.connect(url)
       .then(function(db){
               return db.collection('test')
                   .then(function(col) {
@@ -84,7 +84,7 @@ app.get('/api/graphviz', function(req, res) {
   var response_graphviz=[];
   var response_sigma =[]; //making array of objects
   for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+    mp.MongoClient.connect(url)
       .then(function(db){
               return db.collection('test')
                   .then(function(col) {
@@ -140,7 +140,7 @@ app.get('/api/sigma', function(req, res) {
 
   var response_sigma =[]; //making array of objects
   for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+    mp.MongoClient.connect(url)
       .then(function(db){
               return db.collection('test')
                   .then(function(col) {
@@ -197,7 +197,7 @@ app.get('/api/sigmamult', function(req, res) {
 
   var response_sigma =[]; //making array of objects
   for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+    mp.MongoClient.connect(url)
       .then(function(db){
               return db.collection('test')
                   .then(function(col) {
@@ -326,7 +326,7 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
   console.log("rollcall is "+block_rollcall)
 
 
-  mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+  mp.MongoClient.connect(url)
     .then(function(db){
             return db.collection('test')
                 .then(function(col) {
@@ -445,7 +445,8 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
                                   });//end unlink
                                 });//end file stat
                                 //now add the fact that this block has generated a pic to database UPDATE
-                                mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+                                //moving thos to python module to make sure this is done synchrnously
+                                mp.MongoClient.connect(url)
                                   .then(function(db){
                                           return db.collection('test')
                                               .then(function(col) {//{block_num :block_num},{$set:{generated_gt_pic:"1"}},{multi:true}
@@ -463,7 +464,7 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
                               // console.log("already generated graphs for this block")
                               //insert db query in  here to get transaction hash from block
                             var trans_num =[];
-                            mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
+                            mp.MongoClient.connect(url)
                                 .then(function(db){
                                         return db.collection('test')
                                             .then(function(col) {
