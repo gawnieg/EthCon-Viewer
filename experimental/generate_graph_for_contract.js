@@ -1,111 +1,52 @@
-/*
-Takes in a block number, gets the transaction list, for each transaction:
-- gets a traceDebug object from GETH
-- sorts the depths into their appropriate array position, by modifying their json
-- runs the json modifier on each depth, producing a modified json for each with source and destination for each node/vertice if applicable
-- runs each of these modified jsons through a graph format stage, where a format for .dot, graphml, and graph-tools is generated.
-Additional formats could also be generated at this point.
-- saves the graph format to a database using a promise
 
-THen returns control to the server.js where it was called
+//experimental modified version of graph_gen
 
-//OLD DOCS
-Is working dynamiccally, pulling in dynamiccally from GETH but needs working
-to get to all trans from block of trans.
-pipe the output of this to a .dot for grahviz generation
 
-can use "dot -Tpjg -Gsize=30,4\! -Gdpi=1000 inputfilename.dot -o testnamepic.jpg"
-this will generate a very wide png
-Note, these settings can be changed in the graphviz_config
-
-can use "dot -Tjpg inputfilename.dot -o testnamepic.jpg"
-
-*/
-//var input_json = require("./depth_2.json"); //pulling in static json file
-//will have to change the above file for pulling in data dynamiccally from getTransactionTrace, asynch call from web3
-
-// var json_modifier = require("./modify_json.js"); // in here all functions to trace stack etc.
-// const db = require("./database.js");
-const db2 = require("./database2.js");//second database with promises
+const db2 = require("../database2.js");//second database with promises
 // const graph_format = require("./generate_graph_format.js") // given a modified trace, generates graphviz format
-const mod_json = require("./modify_json_depth.js")// for different stack depths
+const mod_json = require("../modify_json_depth.js")// for different stack depths
 
 
 Web3 = require("web3");
 var web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 
+var transHash = [];
 module.exports={
-  generate_graph_for_blocks: function(_passed_num_blocks, _passed_block_num){
-    return generate_graphs(_passed_num_blocks,_passed_block_num);
-  },
-  gen_graph_promise: function(_passed_num_blocks, _passed_block_num){
-    return gen_graph_prom(_passed_num_blocks, _passed_block_num);
-  },
-  getTransHash: function(_block, _pos){
-    return getTransID(_block, _pos);
+
+  gen_graph_promise: function(_passed_trans_list){
+    for(var lst_i=0; lst_i<_passed_trans_list.length; lst_i++){
+      transHash.push(_passed_trans_list[lst_i]);
+
+    }
+    console.log("pushed values to transHash list")
+    return gen_graph_prom(_passed_trans_list);
   }
+
 }
 
 var trans_list_counter=0;
 
 
-var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
+var gen_graph_prom = function(passed_trans_list){
   return new Promise(function(resolve,reject){
     trans_list_counter=0; //reset trans_list_counter
     var res_str="";// string for storing dot format- MAY NOT be right to place here
     var res_str_gml=""; //for graphml format
     var res_str_dot_no_lbl=""; //experimental for python graph tools
+    console.log("will now graph "+passed_trans_list.length+ " transactions");
+    var contracts_trans_list=passed_trans_list;
 
-    // now get transactions from web3
-    var contracts_trans_list=[];
-    var upper_block_limit = parseInt(_passed_block_num) + parseInt(_passed_num_blocks);
-    var block =parseInt(_passed_block_num);
-    var whole_block = web3.eth.getBlock(block);
-    console.log("block transactions list for block "+ block);
-    console.log(whole_block.transactions);
-    var temp_trans_list=whole_block.transactions;
-    // if trans list empty then return
-    if(temp_trans_list.length==0){
-      console.log("transaction list empty")//
-      //put empty graph format in database
-      db2.save_to_db(_passed_block_num,contracts_trans_list[0],"no internal transactions in this block");
-      return;
-    }
-    //now check if transaction was an internal transaction
-    //if so then add to list
-    for(var trans = 0; trans < temp_trans_list.length; trans++){
-        //get address of transaction
-        var trans_info= web3.eth.getTransaction(temp_trans_list[trans])
-        //now get destination address of transaction
-        var dest_address = trans_info.to;
-        console.log("destination address for trans: "+ temp_trans_list[trans]+ " is " +dest_address);
-        if(dest_address != null){ // dest address is null when
-          if(web3.eth.getCode(dest_address)!=0){ // this will tell if there is code at the desitatoin address
-          //unsure if this check is 100% correct
-          console.log("INTERNAL TRANS!!!");
-          contracts_trans_list.push(temp_trans_list[trans]);
-        }
-      }
-      if(dest_address==null){
-        console.log("this is a contract that I have personally deployed!")
-        contracts_trans_list.push(temp_trans_list[trans]);
-      }
-    }// end of for loop!
-
-    /*now that we have the list we must now get the traces
-    then modify the jsons, then produce the graph outputs and then
-    generate the graphs.
-    */
-
-    for(var int_trans=0;int_trans<contracts_trans_list.length;int_trans++){
+    for(var int_trans=0;int_trans<passed_trans_list.length;int_trans++){
       web3.currentProvider.sendAsync({
         method: "debug_traceTransaction",
         params: [contracts_trans_list[int_trans],{}], // change this line for an individual contract viz
         jsonrpc: "2.0",
         id:"2"},
         function(err,result){
-          console.log("got result from geth for that trans");
+          // console.log("result is "+JSON.stringify(result))//temp
+
+          console.log("got result from geth for that trans "+passed_trans_list[int_trans]);
           if(result.result!=undefined){
                 /* start of new section to deal with multi depth trans*/
             var orig_steps=result.result.structLogs;
@@ -255,17 +196,27 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
               //console.log(prefix); //print prefix - start of graph format
 
               //graphml formatting
-              res_str_gml=res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n","<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n",
-                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n", "xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n",
-                "<graph id=\"G\" edgedefault=\"undirected\">\n" );
+              res_str_gml=res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+              res_str_gml=res_str_gml.concat("<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n");
+              res_str_gml=res_str_gml.concat("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+              res_str_gml=res_str_gml.concat("xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n");
+              res_str_gml=res_str_gml.concat("<graph id=\"G\" edgedefault=\"undirected\">\n");
 
-              res_str=res_str.concat(prefix,newline);
-              res_str_dot_no_lbl=res_str_dot_no_lbl.concat("digraph{",newline);
+
+              res_str=res_str.concat(prefix);
+              res_str=res_str.concat(newline);
+
+              res_str_dot_no_lbl=res_str_dot_no_lbl.concat("digraph{");
+              res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
+
               // console.log("edge[color=antiquewhite]");//set array colour
-              res_str=res_str.concat("edge[color=antiquewhite] ",newline);
+              res_str=res_str.concat("edge[color=antiquewhite] ");
+              res_str=res_str.concat(newline);
               // console.log("bgcolor=black") //set background color
-              res_str=res_str.concat("bgcolor=black",newline);
+              res_str=res_str.concat("bgcolor=black");
+              res_str=res_str.concat(newline);
 
+              // var logs = output; //legacy
               var logs= TwoDarraymodified[graph_depth]; // new line, used to be the above
               for(var x=0;x<logs.length;x++){
                 // if(logs[x].depth != 1){continue;} //critical for multidepth - comment back in to revert
@@ -328,8 +279,8 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
                 var colour = logs[x].colour;
 
                 graphtools_label.push(opcode);
-
-                var colour_array= ["antiquewhite4","aquamarine","aquamarine1","aquamarine2","aquamarine3",
+                var colour_array = ["aliceblue", "antiquewhite", 	"antiquewhite1","antiquewhite2", 	"antiquewhite3",
+                  "antiquewhite4","aquamarine","aquamarine1","aquamarine2","aquamarine3",
                   "aquamarine4", 	"azure", 	"azure1" ,"azure2", 	"azure3",
                   "azure4",
                   "beige",
@@ -467,7 +418,12 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
                 var color_string = colour_array[colour];
 
 
-                var sigma_colour_array=["#f0f8ff",  "#faebd7",  "#ffefdb"  ,  "#eedfcc", "#cdc0b0",                  "#8b8378",
+                var sigma_colour_array=["#f0f8ff",
+                  "#faebd7",
+                  "#ffefdb",
+                  "#eedfcc",
+                  "#cdc0b0",
+                  "#8b8378",
                   "#7fffd4",
                   "#7fffd4",
                   "#76eec6",
@@ -619,25 +575,43 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
 
                 if(typeof(logs[x].colour)!==undefined){
                   //console.log(logs[x].step +" [label=\""+logs[x].op+"\", style=filled, color=" + color_string+"]"); // kept for legacy, incase of needing to pipe
-                  res_str=res_str.concat(logs[x].step," [label=\"",logs[x].op,"\", style=filled, color=",color_string,"]",newline);
+                  res_str=res_str.concat(logs[x].step);
+                  res_str=res_str.concat(" [label=\"");
+                  res_str=res_str.concat(logs[x].op);
+                  res_str=res_str.concat("\", style=filled, color=");
+                  res_str=res_str.concat(color_string);
+                  res_str=res_str.concat("]");
+                  res_str=res_str.concat("\n");
                   //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step,newline);
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
                   //graphml format
-                  res_str_gml=res_str_gml.concat("<node id=\"",logs[x].step,"\"/>\n");
+                  res_str_gml=res_str_gml.concat("<node id=\"");
+                  res_str_gml=res_str_gml.concat(logs[x].step);
+                  res_str_gml=res_str_gml.concat("\"/>\n");
                   //sigmaobj format
                   var x_coord = Math.floor((Math.random() * 100) + 1);//randomly generate coordinates for starting position
                   var y_coord =Math.floor((Math.random() * 100) + 1);
                   //section to find what colour the nodes should be - should be according to opcode, that gives an index number for graphviz
                   var labelplusstep=(logs[x].op).concat(" ",logs[x].step)
+
                   sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":color_string_sigma, "size":10 });
                 }
                 //if the colour has been defined (in modify json) then do:
                 else{
                   //  console.log(logs[x].step +" [label=\""+logs[x].op+"\"]"); // kept for legacy, incase of needing to pipe
-                  res_str=res_str.concat(logs[x].step," [label=\"",logs[x].op,"\"]",newline);
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step,newline);
+                  res_str=res_str.concat(logs[x].step);
+                  res_str=res_str.concat(" [label=\"");
+                  res_str=res_str.concat(logs[x].op);
+                  res_str=res_str.concat("\"]");
+                  res_str=res_str.concat("\n");
+                  //modifed graph tools format
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
                   //graphml format
-                  res_str_gml=res_str_gml.concat("<node id=",logs[x].step,"\"/>\n");
+                  res_str_gml=res_str_gml.concat("<node id=");
+                  res_str_gml=res_str_gml.concat(logs[x].step);
+                  res_str_gml=res_str_gml.concat("\"/>\n");
                   //sigmaobj format
                   var x_coord = Math.floor((Math.random() * 100) + 1);
                   var y_coord =Math.floor((Math.random() * 100) + 1);
@@ -648,16 +622,29 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
                 var l = logs[x].arg_origins.length;
                 for(var y=0;y<l;y++){
                   // console.log(logs[x].arg_origins[y].step + " -> " + logs[x].step + " [label=\""+logs[x].arg_origins[y].value+"\", fontcolor=antiquewhite]");
-                  res_str=res_str.concat(logs[x].arg_origins[y].step," -> ",logs[x].step," [label=\"");
+                  res_str=res_str.concat(logs[x].arg_origins[y].step);
+                  res_str=res_str.concat(" -> ");
+                  res_str=res_str.concat(logs[x].step);
+                  res_str=res_str.concat(" [label=\"");
                   var hexstr="0x";
                   var short_label = logs[x].arg_origins[y].value;
                   short_label=short_label.replace(/^[0]+/g,"");//getting rid of leading zeroes
                   hexstr=hexstr.concat(short_label);
-                  res_str=res_str.concat(hexstr,"\", fontcolor=antiquewhite]",newline);
+                  // res_str=res_str.concat(logs[x].arg_origins[y].value); //commented out in favour of the short_label
+                  res_str=res_str.concat(hexstr);
+                  res_str=res_str.concat("\", fontcolor=antiquewhite]");
+                  res_str=res_str.concat("\n");
                   //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step," -> ",logs[x].step,newline);
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step);
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(" -> ");
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
+                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat("\n");
                   //graphml format
-                  res_str_gml=res_str_gml.concat("<edge source=\"",logs[x].arg_origins[y].step,"\" target=\"",logs[x].step,"\"/>\n");
+                  res_str_gml=res_str_gml.concat("<edge source=\"");
+                  res_str_gml=res_str_gml.concat(logs[x].arg_origins[y].step);
+                  res_str_gml=res_str_gml.concat("\" target=\"");
+                  res_str_gml=res_str_gml.concat(logs[x].step);
+                  res_str_gml=res_str_gml.concat("\"/>\n");
                   //sigmaobj format
                   var sigma_edge_index = x.toString(); //think about this, need a unique string, coming from and going to combined is unique
                   sigma_edge_index=sigma_edge_index.concat("to");
@@ -666,28 +653,36 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
                 }
             }
             //console.log(suffix); //finish graphviz format
-            res_str=res_str.concat(suffix,newline);
+            res_str=res_str.concat(suffix);
+            res_str=res_str.concat("\n");
             //finish graphml format
-            res_str_gml=res_str_gml.concat("</graph>\n","</graphml>\n");
+            res_str_gml=res_str_gml.concat("</graph>\n");
+            res_str_gml=res_str_gml.concat("</graphml>\n");
             //simple dot
-            res_str_dot_no_lbl=res_str_dot_no_lbl.concat("}\n",newline);
+            res_str_dot_no_lbl=res_str_dot_no_lbl.concat("}\n");
+            res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
             //find transaction ID/hash
             console.log("trans_list_counter: "+trans_list_counter)
-            var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
+
+            // var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
+            var trans_hash = transHash[trans_list_counter]//-1 as int_trans is 1 indexed
+            //console.log("int_trans is "+ int_trans)
+            console.log("transHash is "+transHash)
+            console.log("trans_hash is "+trans_hash)
             //updating trans_list_counter which is a global variable that is sent to find the trans hash
             if(graph_depth==1){
                 if(TwoDarraymodified.length >1)
                   trans_list_counter++;
             }
             //save to db
-            console.log("trace found and graph made - attempting to save to db "+int_trans+"block num: "+_passed_block_num); //graph depth is the memory depth
-            db2.save_to_db(_passed_block_num,trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
+            console.log("trace found and graph made"); //graph depth is the memory depth
+            db2.save_trans_to_db(trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
           } //end of for each depth loop
         }//end of if result.result != undefined
 
          if(result.result==undefined){
-            console.log("no trace found but saving placeholder"+contracts_trans_list[int_trans]+"block num: "+_passed_block_num);
-            db2.save_to_db(_passed_block_num,contracts_trans_list[int_trans],"bad block!"); //passing block number, transaction_no, graph output.
+            console.log("no trace found but saving placeholder");
+            db2.save_trans_to_db(contracts_trans_list[int_trans],"bad block!"); //passing block number, transaction_no, graph output.
          }
     }); // end of web aynch send callback
 
