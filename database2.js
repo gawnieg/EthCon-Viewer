@@ -10,9 +10,9 @@ var url = "mongodb://localhost:27017/test";
 // });
 
 module.exports={
-   save_to_db: function(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return){
+   save_to_db: function(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth){
      console.log("module exports: save_to_db called")
-    save_to_db(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return);
+    save_to_db(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth);
   },
   find_in_db: function(_block_num){
     console.log("module exports: find_in_db called")
@@ -31,12 +31,12 @@ module.exports={
 // .fail(function(err) {console.log(err)});
 
 // Insert documents
-function save_to_db(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return){
+function save_to_db(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth){ //num return is the totatl depth level for that block, _graph_depth is the exact level for that particular graph
 mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
     .then(function(db){
         return db.collection('test')
             .then(function(col) {
-                return col.insert({block_num : _block_num, transaction_no: _trans_no,graph : _graph,graphml:_graphml, sigmaobj:_sigmaobj, simpledot:_res_str_dot_no_lbl,gtlabel: graphtools_label,gtcolor: graphtools_color, blockDepth: num_return}) //simple dot saved for graph-tools comptability
+                return col.insert({block_num : _block_num, transaction_no: _trans_no,graph : _graph,graphml:_graphml, sigmaobj:_sigmaobj, simpledot:_res_str_dot_no_lbl,gtlabel: graphtools_label,gtcolor: graphtools_color, blockDepth: num_return,depthLevel:_graph_depth}) //simple dot saved for graph-tools comptability
                     .then(function(result) {
                         //console.log(result);
                          db.close().then(console.log('save_to_db is a success'));

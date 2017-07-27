@@ -330,7 +330,7 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
     .then(function(db){
             return db.collection('test')
                 .then(function(col) {
-                    return col.find({block_num : {$gte:first_block_to_search,$lte:last_block_to_search}}).toArray()
+                    return col.find({block_num : {$gte:first_block_to_search,$lte:last_block_to_search}}).toArray() //search and return blocks within range
                         .then(function(items) {
                           if(items.length){
                             console.log("found "+items.length+" items for this block in DB!")

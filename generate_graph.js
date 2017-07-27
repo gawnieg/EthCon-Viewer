@@ -47,7 +47,7 @@ module.exports={
   }
 }
 
-//var num_return=0;
+var trans_list_counter=0;
 
 
 var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
@@ -105,7 +105,7 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
         jsonrpc: "2.0",
         id:"2"},
         function(err,result){
-          console.log("got result from geth for that trans ");
+          console.log("got result from geth for that trans");
           if(result.result!=undefined){
                 /* start of new section to deal with multi depth trans*/
             var orig_steps=result.result.structLogs;
@@ -113,17 +113,17 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
               var SINGLE_NODES_OFF = 1;
 
 
-            //this seperates the structLogs into their own files
+            //this seperates the structLogs into their own files according to depth. Depth ==11 does not mean 11 stack files!
+            //will be more than 11 array entries for depth ==11 but not definite
             //third effort 20.07.17
             var TwoDarrayWithDepths = Create2DArray(2000);
-            var max_depth_seen=0;
-            var mem_index=1;
-            //making the array with a loop
-            needs_new_mem=[];
+            //making the array with a loop [1,2,3,4,5 ....2000]
+            // array to store what memory array the depth level needs to be stored at
+            var needs_new_mem=[];
             for(var newarray_i=0;newarray_i<2000;newarray_i++){
               needs_new_mem.push(newarray_i+1);
             }
-            //var needs_new_mem=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]; // array to store what memory array the depth level needs to be stored at
+            var mem_index=1; //variable to hold global array index for depth tracker
             for(index=0;index<orig_steps.length;index++){
               var currentDepth=orig_steps[index].depth;
               if(currentDepth==1 && orig_steps[index].pc ==0){ // for the very first step, need this as the rest work off the basis of difference between depths
@@ -132,12 +132,12 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
                 orig_steps[index].grapharray = needs_new_mem[currentDepth]; //set field in json to what array it should be put into before modification
                 mem_index++; //increament this global array number
               }
-              if(index>0){
+              if(index>0){ //for not the first step. First step would cause index-1 to be looked up and this would return undefined
                 // if(Math.abs(orig_steps[index].depth-orig_steps[index-1].depth) == 1){
                 //   console.log("Depth is :"+orig_steps[index].depth+ " && pc is: "+ orig_steps[index].pc)
                 // }
                 var previousDepth = orig_steps[index-1].depth
-                //from left to right
+                //from left to right - increasing stack depth
                 if(currentDepth-previousDepth ==1){ //if increasing the stack depth then the global incrementer should increase
                   //should store at
                   needs_new_mem[currentDepth]=mem_index
@@ -232,7 +232,7 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
             // }
 
             console.log("TwoDarraymodified (modify_diff_depth output) length" + TwoDarraymodified.length)
-            /* end of new section */
+            /* end of getting rid of duplicates section */
 
             /* new loop for depth>1 */
             for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
@@ -721,13 +721,23 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
             res_str_dot_no_lbl=res_str_dot_no_lbl.concat("}\n");
             res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
             //find transaction ID/hash
-            var trans_hash = getTransID(_passed_block_num,int_trans-1); //why -1??
-
+            console.log("trans_list_counter: "+trans_list_counter)
+            var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
             //save to db
-            console.log("trace found and graph made - attempting to save to db"+int_trans+"block num: "+_passed_block_num);
-            db2.save_to_db(_passed_block_num,trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return); //passing block number, transaction_no, graph output.
-          }
-        }
+            //updating trans_list_counter which is a global variable that is sent to find the trans hash
+            if(graph_depth==1){
+                if(TwoDarraymodified.length >1)
+                  trans_list_counter++;
+            }
+
+            // if(TwoDarraymodified.length >1){ //only if we have moved onto a new transaction increment the counter
+            //   trans_list_counter--;
+            // }
+
+            console.log("trace found and graph made - attempting to save to db "+int_trans+"block num: "+_passed_block_num); //graph depth is the memory depth
+            db2.save_to_db(_passed_block_num,trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
+          } //end of for each depth loop
+        }//end of if result.result != undefined
 
          if(result.result==undefined){
             console.log("no trace found but saving placeholder"+contracts_trans_list[int_trans]+"block num: "+_passed_block_num);

@@ -1,4 +1,7 @@
 import os, sys, json, numpy as np
+import pymongo
+con = pymongo.MongoClient()
+coll = con.test.test #collection route
 from graph_tool.all import *
 from collections import Counter
 
@@ -23,8 +26,8 @@ def main():
     labelarray = fromstdin[2]
     #print("python colorarray", colorarray[0][1])
 
-    depth_per_block_array=fromstdin[3] # which blocks we got passed
-    blocks_to_graphs = fromstdin[4] # how many depths per block
+    #depth_per_block_array=fromstdin[3] # which blocks we got passed
+    blocks_to_graphs = fromstdin[4] # which blocks we got passed
 
     #then load file
     #then split in memory according to "}"
@@ -35,7 +38,7 @@ def main():
         print("opened file")
         a = tf.read() # a is all the graphs formatting for the block
 
-    x = a.split("}") # split on }
+    x = a.split("}") # split on } (aka end of dot file)
     res=[]
     i=0
     num_each_block = Counter(blocks_to_graphs[i]) # returns the number of instances of each block num, indexable with the blocknumber
