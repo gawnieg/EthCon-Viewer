@@ -19,7 +19,7 @@ Depending on the route selected - graphtools
                                 -sigmamult
 a certain format of graph network represending the control flow diagram will display in the browser. 
 
-![Alt text](./.jpg?raw=true "Optional Title")
+![Alt text](./githubdemographtools.png?raw=true "Graph-Tools representation of one contracts control flow diagram")
 
 
 The following should be noted:
