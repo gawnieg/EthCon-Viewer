@@ -19,6 +19,9 @@ Depending on the route selected - graphtools
                                 -sigmamult
 a certain format of graph network represending the control flow diagram will display in the browser. 
 
+![Alt text](./.jpg?raw=true "Optional Title")
+
+
 The following should be noted:
 /sigma will only display the last block requested. 
 
