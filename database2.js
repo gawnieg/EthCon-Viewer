@@ -50,6 +50,8 @@ mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
 .fail(function(err) {console.log(err);});
 }
 
+
+// for view all trans in contract NOTE DIFFERENT URL
 function save_trans_to_db(_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth){ //num return is the totatl depth level for that block, _graph_depth is the exact level for that particular graph
 mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
     .then(function(db){

@@ -14,12 +14,11 @@ web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 var transHash = [];
 module.exports={
 
-  gen_graph_promise: function(_passed_trans_list){
-    for(var lst_i=0; lst_i<_passed_trans_list.length; lst_i++){
+  gen_graph_promise: function(_passed_trans_list){ // NOTE this is expecting an array!!!
+    transHash=[];
+    for(var lst_i=0; lst_i<parseInt(_passed_trans_list.length); lst_i++){
       transHash.push(_passed_trans_list[lst_i]);
-
     }
-    console.log("pushed values to transHash list")
     return gen_graph_prom(_passed_trans_list);
   }
 

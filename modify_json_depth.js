@@ -420,7 +420,26 @@ function find_add_remove_nums(opcode){
     case "SWAP16":
     var r= {c: 17, p:17,colour:107}
     break
-
+    //new opcodes taken from https://github.com/ethereum/pyethereum/blob/develop/ethereum/opcodes.py
+    case "CALLBLACKBOX":
+    var r= {c: 7, p:1,colour:107}
+    break
+    case "STATICCALL":
+    var r= {c: 6, p:1,colour:107}
+    break
+    case "REVERT":
+    var r= {c: 2, p:0,colour:107}
+    break
+    //these three opcodes in hex representation too, since this seems to be what they fault on
+    case 0xf5://callblackbox
+    var r= {c: 7, p:1,colour:107}
+    break
+    case 0xfa:
+    var r= {c: 6, p:1,colour:107}
+    break
+    case 0xfd:
+    var r= {c: 2, p:0,colour:107}
+    break
 
     default:
         console.log("no matching opcode"+opcode)
