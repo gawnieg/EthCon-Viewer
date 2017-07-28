@@ -14,42 +14,22 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       "nodes":[]
     }
   }
-
-
-
-
-
   var prefix = "\`digraph{";
   var suffix = "}\`\n";
   var newline = '\n';
-  //require("./graphviz_config.js"); //pull in settings for graph
-  //console.log(prefix); //print prefix - start of graph format
-
   //graphml formatting
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n");
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n");
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("<graph id=\"G\" edgedefault=\"undirected\">\n");
+  returnObj.res_str_gml=returnObj.res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n","<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n",
+    "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n", "xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n",
+    "<graph id=\"G\" edgedefault=\"undirected\">\n" );
 
+  returnObj.res_str=returnObj.res_str.concat(prefix,newline);
+  returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat("digraph{",newline);
 
-  returnObj.res_str=returnObj.res_str.concat(prefix);
-  returnObj.res_str=returnObj.res_str.concat(newline);
+  returnObj.res_str=returnObj.res_str.concat("edge[color=antiquewhite] ",newline);
+  returnObj.res_str=returnObj.res_str.concat("bgcolor=black",newline);
 
-  returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat("digraph{");
-  returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(newline);
-
-  // console.log("edge[color=antiquewhite]");//set array colour
-  returnObj.res_str=returnObj.res_str.concat("edge[color=antiquewhite] ");
-  returnObj.res_str=returnObj.res_str.concat(newline);
-  // console.log("bgcolor=black") //set background color
-  returnObj.res_str=returnObj.res_str.concat("bgcolor=black");
-  returnObj.res_str=returnObj.res_str.concat(newline);
-
-  // var logs = output; //legacy
   var logs= TwoDarraymodified[graph_depth]; // new line, used to be the above
   for(var x=0;x<logs.length;x++){
-    // if(logs[x].depth != 1){continue;} //critical for multidepth - comment back in to revert
     //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
     var opcode = logs[x].op;
 
@@ -116,44 +96,24 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
 
     //if the colour for the particular opcode is not defined then do:
     if(typeof(logs[x].colour)!==undefined){
-      //console.log(logs[x].step +" [label=\""+logs[x].op+"\", style=filled, color=" + color_string+"]"); // kept for legacy, incase of needing to pipe
-      returnObj.res_str=returnObj.res_str.concat(logs[x].step);
-      returnObj.res_str=returnObj.res_str.concat(" [label=\"");
-      returnObj.res_str=returnObj.res_str.concat(logs[x].op);
-      returnObj.res_str=returnObj.res_str.concat("\", style=filled, color=");
-      returnObj.res_str=returnObj.res_str.concat(color_string);
-      returnObj.res_str=returnObj.res_str.concat("]");
-      returnObj.res_str=returnObj.res_str.concat("\n");
+      returnObj.res_str=returnObj.res_str.concat(logs[x].step," [label=\"",logs[x].op,"\", style=filled, color=",color_string,"]",newline);
       //modifed graph tools format
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step);
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(newline);
+      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step,newline);
       //graphml format
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("<node id=\"");
-      returnObj.res_str_gml=returnObj.res_str_gml.concat(logs[x].step);
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("\"/>\n");
+      returnObj.res_str_gml=returnObj.res_str_gml.concat("<node id=\"",logs[x].step,"\"/>\n");
       //returnObj.sigmaobj format
       var x_coord = Math.floor((Math.random() * 100) + 1);//randomly generate coordinates for starting position
       var y_coord =Math.floor((Math.random() * 100) + 1);
       //section to find what colour the nodes should be - should be according to opcode, that gives an index number for graphviz
       var labelplusstep=(logs[x].op).concat(" ",logs[x].step)
-
       returnObj.sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":color_string_sigma, "size":10 });
     }
     //if the colour has been defined (in modify json) then do:
     else{
-      //  console.log(logs[x].step +" [label=\""+logs[x].op+"\"]"); // kept for legacy, incase of needing to pipe
-      returnObj.res_str=returnObj.res_str.concat(logs[x].step);
-      returnObj.res_str=returnObj.res_str.concat(" [label=\"");
-      returnObj.res_str=returnObj.res_str.concat(logs[x].op);
-      returnObj.res_str=returnObj.res_str.concat("\"]");
-      returnObj.res_str=returnObj.res_str.concat("\n");
-      //modifed graph tools format
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step);
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(newline);
+      returnObj.res_str=returnObj.res_str.concat(logs[x].step," [label=\"",logs[x].op,"\"]",newline);
+      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step,newline);
       //graphml format
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("<node id=");
-      returnObj.res_str_gml=returnObj.res_str_gml.concat(logs[x].step);
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("\"/>\n");
+      returnObj.res_str_gml=returnObj.res_str_gml.concat("<node id=",logs[x].step,"\"/>\n");
       //returnObj.sigmaobj format
       var x_coord = Math.floor((Math.random() * 100) + 1);
       var y_coord =Math.floor((Math.random() * 100) + 1);
@@ -163,30 +123,16 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
     //now do edges!!!
     var l = logs[x].arg_origins.length;
     for(var y=0;y<l;y++){
-      // console.log(logs[x].arg_origins[y].step + " -> " + logs[x].step + " [label=\""+logs[x].arg_origins[y].value+"\", fontcolor=antiquewhite]");
-      returnObj.res_str=returnObj.res_str.concat(logs[x].arg_origins[y].step);
-      returnObj.res_str=returnObj.res_str.concat(" -> ");
-      returnObj.res_str=returnObj.res_str.concat(logs[x].step);
-      returnObj.res_str=returnObj.res_str.concat(" [label=\"");
+      returnObj.res_str=returnObj.res_str.concat(logs[x].arg_origins[y].step," -> ",logs[x].step," [label=\"");
       var hexstr="0x";
       var short_label = logs[x].arg_origins[y].value;
       short_label=short_label.replace(/^[0]+/g,"");//getting rid of leading zeroes
       hexstr=hexstr.concat(short_label);
-      // returnObj.res_str=returnObj.res_str.concat(logs[x].arg_origins[y].value); //commented out in favour of the short_label
-      returnObj.res_str=returnObj.res_str.concat(hexstr);
-      returnObj.res_str=returnObj.res_str.concat("\", fontcolor=antiquewhite]");
-      returnObj.res_str=returnObj.res_str.concat("\n");
+      returnObj.res_str=returnObj.res_str.concat(hexstr,"\", fontcolor=antiquewhite]",newline);
       //modifed graph tools format
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step);
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(" -> ");
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step);
-      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat("\n");
+      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step," -> ",logs[x].step,newline);
       //graphml format
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("<edge source=\"");
-      returnObj.res_str_gml=returnObj.res_str_gml.concat(logs[x].arg_origins[y].step);
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("\" target=\"");
-      returnObj.res_str_gml=returnObj.res_str_gml.concat(logs[x].step);
-      returnObj.res_str_gml=returnObj.res_str_gml.concat("\"/>\n");
+      returnObj.res_str_gml=returnObj.res_str_gml.concat("<edge source=\"",logs[x].arg_origins[y].step,"\" target=\"",logs[x].step,"\"/>\n");
       //returnObj.sigmaobj format
       var sigma_edge_index = x.toString(); //think about this, need a unique string, coming from and going to combined is unique
       sigma_edge_index=sigma_edge_index.concat("to");
@@ -194,16 +140,12 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       returnObj.sigmaobj.edges.push({"id":sigma_edge_index, "source":(logs[x].arg_origins[y].step).toString(), "target":(logs[x].step).toString(),"color":"#006666"});
     }
   }
-  //console.log(suffix); //finish graphviz format
-  returnObj.res_str=returnObj.res_str.concat(suffix);
-  returnObj.res_str=returnObj.res_str.concat("\n");
+  returnObj.res_str=returnObj.res_str.concat(suffix,newline);
   //finish graphml format
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("</graph>\n");
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("</graphml>\n");
+  returnObj.res_str_gml=returnObj.res_str_gml.concat("</graph>\n","</graphml>\n");
   //simple dot
-  returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat("}\n");
-  returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(newline);
-  
+  returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat("}\n",newline);
+
   return returnObj;
   }
 }//end of module exports

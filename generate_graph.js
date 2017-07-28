@@ -21,13 +21,9 @@ Note, these settings can be changed in the graphviz_config
 can use "dot -Tjpg inputfilename.dot -o testnamepic.jpg"
 
 */
-//var input_json = require("./depth_2.json"); //pulling in static json file
 //will have to change the above file for pulling in data dynamiccally from getTransactionTrace, asynch call from web3
 
-// var json_modifier = require("./modify_json.js"); // in here all functions to trace stack etc.
-// const db = require("./database.js");
 const db2 = require("./database2.js");//second database with promises
-// const graph_format = require("./generate_graph_format.js") // given a modified trace, generates graphviz format
 const mod_json = require("./modify_json_depth.js")// for different stack depths
 
 
@@ -75,22 +71,19 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
     //now check if transaction was an internal transaction
     //if so then add to list
     for(var trans = 0; trans < temp_trans_list.length; trans++){
-        //get address of transaction
-        var trans_info= web3.eth.getTransaction(temp_trans_list[trans])
-        //now get destination address of transaction
-        var dest_address = trans_info.to;
+        var trans_info= web3.eth.getTransaction(temp_trans_list[trans])//get address of transaction
+        var dest_address = trans_info.to;//now get destination address of transaction
         console.log("destination address for trans: "+ temp_trans_list[trans]+ " is " +dest_address);
         if(dest_address != null){ // dest address is null when
           if(web3.eth.getCode(dest_address)!=0){ // this will tell if there is code at the desitatoin address
-          //unsure if this check is 100% correct
-          console.log("INTERNAL TRANS!!!");
+            console.log("INTERNAL TRANS!!!");
+            contracts_trans_list.push(temp_trans_list[trans]);
+          }
+        }
+        if(dest_address==null){
+          console.log("this is a contract that I have personally deployed!")// unsure if this is true - non contract transaction will return a null value in sendAsync anyway
           contracts_trans_list.push(temp_trans_list[trans]);
         }
-      }
-      if(dest_address==null){
-        console.log("this is a contract that I have personally deployed!")
-        contracts_trans_list.push(temp_trans_list[trans]);
-      }
     }// end of for loop!
 
     /*now that we have the list we must now get the traces
@@ -107,15 +100,11 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
         function(err,result){
           console.log("got result from geth for that trans");
           if(result.result!=undefined){
-                /* start of new section to deal with multi depth trans*/
             var orig_steps=result.result.structLogs;
-              //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
-              var SINGLE_NODES_OFF = 1;
+            var SINGLE_NODES_OFF = 1;//if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
 
-
-            //this seperates the structLogs into their own files according to depth. Depth ==11 does not mean 11 stack files!
+            //this section seperates the structLogs into their own files according to depth. Depth ==11 does not mean 11 stack files!
             //will be more than 11 array entries for depth ==11 but not definite
-            //third effort 20.07.17
             var TwoDarrayWithDepths = Create2DArray(2000);
             //making the array with a loop [1,2,3,4,5 ....2000]
             // array to store what memory array the depth level needs to be stored at
@@ -127,37 +116,28 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
             for(index=0;index<orig_steps.length;index++){
               var currentDepth=orig_steps[index].depth;
               if(currentDepth==1 && orig_steps[index].pc ==0){ // for the very first step, need this as the rest work off the basis of difference between depths
-                // console.log("starting!!")
                 needs_new_mem[currentDepth]=mem_index;
                 orig_steps[index].grapharray = needs_new_mem[currentDepth]; //set field in json to what array it should be put into before modification
                 mem_index++; //increament this global array number
               }
               if(index>0){ //for not the first step. First step would cause index-1 to be looked up and this would return undefined
-                // if(Math.abs(orig_steps[index].depth-orig_steps[index-1].depth) == 1){
-                //   console.log("Depth is :"+orig_steps[index].depth+ " && pc is: "+ orig_steps[index].pc)
-                // }
                 var previousDepth = orig_steps[index-1].depth
                 //from left to right - increasing stack depth
                 if(currentDepth-previousDepth ==1){ //if increasing the stack depth then the global incrementer should increase
-                  //should store at
                   needs_new_mem[currentDepth]=mem_index
                   orig_steps[index].grapharray = needs_new_mem[currentDepth]; // create a field in the json saying where it should be stored
-                  // console.log("LTR should be stored in "+needs_new_mem[currentDepth])
-                  // console.log("printing needs_new_mem array:"+needs_new_mem)
                   mem_index++;
                 }
                 //from right to left
                 else if(previousDepth -currentDepth==1){
-                  // console.log("RTL should store in "+ needs_new_mem[currentDepth])
                   orig_steps[index].grapharray = needs_new_mem[currentDepth];
-                  // console.log("printing needs_new_mem array:"+needs_new_mem)
                 }
                 else{
-                    orig_steps[index].grapharray = orig_steps[index-1].grapharray
+                  orig_steps[index].grapharray = orig_steps[index-1].grapharray
                 }
               }
-            }
-            //now go through the json and extract out into teh twodarray
+            } // end of json modifying loop
+            //now go through the json and extract out into the twodarray
             for(index=0;index<orig_steps.length;index++){
               //now place into 2D array accordinging to grapharray property
               TwoDarrayWithDepths[orig_steps[index].grapharray].push(orig_steps[index])
@@ -167,17 +147,13 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
             var filledlength=0; // variable how long each subarray is
             var array_filled_length=0;
             for(i=0;i<TwoDarrayWithDepths.length;i++){
-
               if(TwoDarrayWithDepths[i].length >0){
-                // console.log(i + " is populated")
-                console.log("checking TwoDarrayDepth["+ i +"]" + TwoDarrayWithDepths[i].length)
                 filledlength = TwoDarrayWithDepths[i].length;
                 if(filledlength>0){
                   array_filled_length++;
                 }
               }
             }
-
             //now delete elemets of array that are not needed - unfilled
             TwoDarrayWithDepths = TwoDarrayWithDepths.slice(0,array_filled_length+1);
             console.log("there are "+ array_filled_length + " depths to this transaction")
@@ -198,7 +174,6 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
               1/ large array is generated for each step number with 2's in it
               2. each time this step is mentioned, the corresponding position in the array is decremented
               3. if it reaches 0 (more than 2 mentions) it is not a single node and should be included
-
                */
               //generate large array of 2's
               var checklist= fillArray(2,(TwoDarraymodified[depth].length+1)) //function declared below
@@ -226,183 +201,30 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
               }
               TwoDChecklist[depth]=checklist; //assign over value of checklist to a 2d array to hold then so they can be used later on!
             }
-            //printing for debugging
-            // for(var print_i=0; print_i<checklist.length;print_i++){
-            //   console.log(print_i + ": gives "+ checklist[print_i])
-            // }
-
-            console.log("TwoDarraymodified (modify_diff_depth output) length" + TwoDarraymodified.length)
             /* end of getting rid of duplicates section */
-
-            /* new loop for depth>1 */
+            //now section to generate various formats for graphs from the modifed json
+            const graphFormat = require("./gen_graph_format.js")
+            //now loop through various depths
             for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
-              var graphtools_color = []; // for storing label and color for graph tools. this is saved to db
-              var graphtools_label =[];
-              res_str = ""; // reset at the start!!
-              // res_str = graph_format.generate_graph_format(output);  // get graphviz formatted output
-              res_str_gml="";
-              var sigmaobj={
-                "edges":[],
-                "nodes":[]
+              var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist);
+              var res_str = format.res_str;
+              var res_str_gml=format.res_str_gml;
+              var res_str_dot_no_lbl=format.res_str_dot_no_lbl;
+              var sigmaobj = format.sigmaobj;
+              var graphtools_label=format.graphtools_label;
+              var graphtools_color=format.graphtools_color;
+              //find transaction ID/hash
+              console.log("trans_list_counter: "+trans_list_counter)
+              var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
+              //updating trans_list_counter which is a global variable that is sent to find the trans hash
+              if(graph_depth==1){
+                  if(TwoDarraymodified.length >1)
+                    trans_list_counter++;
               }
-
-              res_str_dot_no_lbl=""; // this holds format for graph tools
-
-              var prefix = "\`digraph{";
-              var suffix = "}\`\n";
-              var newline = '\n';
-              //require("./graphviz_config.js"); //pull in settings for graph
-              //console.log(prefix); //print prefix - start of graph format
-
-              //graphml formatting
-              res_str_gml=res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n","<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n",
-                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n", "xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n",
-                "<graph id=\"G\" edgedefault=\"undirected\">\n" );
-
-              res_str=res_str.concat(prefix,newline);
-              res_str_dot_no_lbl=res_str_dot_no_lbl.concat("digraph{",newline);
-              // console.log("edge[color=antiquewhite]");//set array colour
-              res_str=res_str.concat("edge[color=antiquewhite] ",newline);
-              // console.log("bgcolor=black") //set background color
-              res_str=res_str.concat("bgcolor=black",newline);
-
-              var logs= TwoDarraymodified[graph_depth]; // new line, used to be the above
-              for(var x=0;x<logs.length;x++){
-                // if(logs[x].depth != 1){continue;} //critical for multidepth - comment back in to revert
-                //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
-                var opcode = logs[x].op;
-
-                if(SINGLE_NODES_OFF){
-                  if(TwoDChecklist[graph_depth][x] >=1){
-                    console.log("single (Unconnected) node "+logs[x].step+" which is a "+logs[x].op+"...skipping!")
-                    continue;
-                  }
-                }
-
-
-                switch(opcode){
-                  case "SWAP0":
-                  continue;
-                  case "SWAP1":
-                  continue;
-                  case "SWAP2":
-                  continue;
-                  case "SWAP3":
-                  continue;
-                  case "SWAP4":
-                  continue;
-                  case "SWAP5":
-                  continue;
-                  case "SWAP6":
-                  continue;
-                  case "SWAP7":
-                  continue;
-                  case "SWAP8":
-                  continue;
-                  case "SWAP9":
-                  continue;
-                  case "SWAP0":
-                  continue;
-                  case "DUP0":
-                  continue;
-                  case "DUP1":
-                  continue;
-                  case "DUP2":
-                  continue;
-                  case "DUP3":
-                  continue;
-                  case "DUP4":
-                  continue;
-                  case "DUP5":
-                  continue;
-                  case "DUP6":
-                  continue;
-                  case "DUP7":
-                  continue;
-                  case "DUP8":
-                  continue;
-                  case "DUP9":
-                  continue;
-                  }
-                //lookup colour in array
-                var colour = logs[x].colour;
-
-                graphtools_label.push(opcode);
-                const import_colour_arrays = require("./config/generate_graph_config.js");
-                var colour_array=import_colour_arrays.colour_array;
-                var sigma_colour_array = import_colour_arrays.sigma_colour_array;
-                var color_string = colour_array[colour];
-                //if the colour for the particular opcode is not defined then do:
-                var color_string_sigma=sigma_colour_array[colour];
-                graphtools_color.push(color_string_sigma); //graph tools understands hex
-
-
-                if(typeof(logs[x].colour)!==undefined){
-                  //console.log(logs[x].step +" [label=\""+logs[x].op+"\", style=filled, color=" + color_string+"]"); // kept for legacy, incase of needing to pipe
-                  res_str=res_str.concat(logs[x].step," [label=\"",logs[x].op,"\", style=filled, color=",color_string,"]",newline);
-                  //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step,newline);
-                  //graphml format
-                  res_str_gml=res_str_gml.concat("<node id=\"",logs[x].step,"\"/>\n");
-                  //sigmaobj format
-                  var x_coord = Math.floor((Math.random() * 100) + 1);//randomly generate coordinates for starting position
-                  var y_coord =Math.floor((Math.random() * 100) + 1);
-                  //section to find what colour the nodes should be - should be according to opcode, that gives an index number for graphviz
-                  var labelplusstep=(logs[x].op).concat(" ",logs[x].step)
-                  sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":color_string_sigma, "size":10 });
-                }
-                //if the colour has been defined (in modify json) then do:
-                else{
-                  //  console.log(logs[x].step +" [label=\""+logs[x].op+"\"]"); // kept for legacy, incase of needing to pipe
-                  res_str=res_str.concat(logs[x].step," [label=\"",logs[x].op,"\"]",newline);
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step,newline);
-                  //graphml format
-                  res_str_gml=res_str_gml.concat("<node id=",logs[x].step,"\"/>\n");
-                  //sigmaobj format
-                  var x_coord = Math.floor((Math.random() * 100) + 1);
-                  var y_coord =Math.floor((Math.random() * 100) + 1);
-                  var labelplusstep=(logs[x].op).concat(" ",logs[x].step) //was just logs[x].op
-                  sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":"rgb(90,90,90)", "size":10 });
-                }
-                //now do edges!!!
-                var l = logs[x].arg_origins.length;
-                for(var y=0;y<l;y++){
-                  // console.log(logs[x].arg_origins[y].step + " -> " + logs[x].step + " [label=\""+logs[x].arg_origins[y].value+"\", fontcolor=antiquewhite]");
-                  res_str=res_str.concat(logs[x].arg_origins[y].step," -> ",logs[x].step," [label=\"");
-                  var hexstr="0x";
-                  var short_label = logs[x].arg_origins[y].value;
-                  short_label=short_label.replace(/^[0]+/g,"");//getting rid of leading zeroes
-                  hexstr=hexstr.concat(short_label);
-                  res_str=res_str.concat(hexstr,"\", fontcolor=antiquewhite]",newline);
-                  //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step," -> ",logs[x].step,newline);
-                  //graphml format
-                  res_str_gml=res_str_gml.concat("<edge source=\"",logs[x].arg_origins[y].step,"\" target=\"",logs[x].step,"\"/>\n");
-                  //sigmaobj format
-                  var sigma_edge_index = x.toString(); //think about this, need a unique string, coming from and going to combined is unique
-                  sigma_edge_index=sigma_edge_index.concat("to");
-                  sigma_edge_index=sigma_edge_index.concat((y.toString()))
-                  sigmaobj.edges.push({"id":sigma_edge_index, "source":(logs[x].arg_origins[y].step).toString(), "target":(logs[x].step).toString(),"color":"#006666"});
-                }
-            }
-            //console.log(suffix); //finish graphviz format
-            res_str=res_str.concat(suffix,newline);
-            //finish graphml format
-            res_str_gml=res_str_gml.concat("</graph>\n","</graphml>\n");
-            //simple dot
-            res_str_dot_no_lbl=res_str_dot_no_lbl.concat("}\n",newline);
-            //find transaction ID/hash
-            console.log("trans_list_counter: "+trans_list_counter)
-            var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
-            //updating trans_list_counter which is a global variable that is sent to find the trans hash
-            if(graph_depth==1){
-                if(TwoDarraymodified.length >1)
-                  trans_list_counter++;
-            }
-            //save to db
-            console.log("trace found and graph made - attempting to save to db "+int_trans+"block num: "+_passed_block_num); //graph depth is the memory depth
-            db2.save_to_db(_passed_block_num,trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
-          } //end of for each depth loop
+              //save to db
+              console.log("trace found and graph made - attempting to save to db "+int_trans+"block num: "+_passed_block_num); //graph depth is the memory depth
+              db2.save_to_db(_passed_block_num,trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
+            } //end of for each depth loop
         }//end of if result.result != undefined
 
          if(result.result==undefined){
@@ -418,6 +240,8 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
 ); //end of promise function
 } // end of gen_graph_prom
 
+
+//Helper functions
 //creates a 2d array!
 function Create2DArray(rows) {
   var arr = [];
