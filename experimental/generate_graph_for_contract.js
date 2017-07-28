@@ -1,11 +1,11 @@
 
 //experimental modified version of graph_gen
 
-
+const randomstring =require("randomstring")
 const db2 = require("../database2.js");//second database with promises
 // const graph_format = require("./generate_graph_format.js") // given a modified trace, generates graphviz format
 const mod_json = require("../modify_json_depth.js")// for different stack depths
-
+const fs = require("fs")
 
 Web3 = require("web3");
 var web3 = new Web3();
@@ -173,497 +173,223 @@ var gen_graph_prom = function(passed_trans_list){
 
             console.log("TwoDarraymodified (modify_diff_depth output) length" + TwoDarraymodified.length)
             /* end of getting rid of duplicates section */
-
+            const graphFormat = require("../gen_graph_format.js")
             /* new loop for depth>1 */
             for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
-              var graphtools_color = []; // for storing label and color for graph tools. this is saved to db
-              var graphtools_label =[];
-              res_str = ""; // reset at the start!!
-              // res_str = graph_format.generate_graph_format(output);  // get graphviz formatted output
-              res_str_gml="";
-              var sigmaobj={
-                "edges":[],
-                "nodes":[]
-              }
 
-              res_str_dot_no_lbl=""; // this holds format for graph tools
+            var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist);
 
-              var prefix = "\`digraph{";
-              var suffix = "}\`\n";
-              var newline = '\n';
-              //require("./graphviz_config.js"); //pull in settings for graph
-              //console.log(prefix); //print prefix - start of graph format
-
-              //graphml formatting
-              res_str_gml=res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-              res_str_gml=res_str_gml.concat("<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n");
-              res_str_gml=res_str_gml.concat("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-              res_str_gml=res_str_gml.concat("xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n");
-              res_str_gml=res_str_gml.concat("<graph id=\"G\" edgedefault=\"undirected\">\n");
-
-
-              res_str=res_str.concat(prefix);
-              res_str=res_str.concat(newline);
-
-              res_str_dot_no_lbl=res_str_dot_no_lbl.concat("digraph{");
-              res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
-
-              // console.log("edge[color=antiquewhite]");//set array colour
-              res_str=res_str.concat("edge[color=antiquewhite] ");
-              res_str=res_str.concat(newline);
-              // console.log("bgcolor=black") //set background color
-              res_str=res_str.concat("bgcolor=black");
-              res_str=res_str.concat(newline);
-
-              // var logs = output; //legacy
-              var logs= TwoDarraymodified[graph_depth]; // new line, used to be the above
-              for(var x=0;x<logs.length;x++){
-                // if(logs[x].depth != 1){continue;} //critical for multidepth - comment back in to revert
-                //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
-                var opcode = logs[x].op;
-
-                if(SINGLE_NODES_OFF){
-                  if(TwoDChecklist[graph_depth][x] >=1){
-                    console.log("single (Unconnected) node "+logs[x].step+" which is a "+logs[x].op+"...skipping!")
-                    continue;
-                  }
-                }
-
-
-                switch(opcode){
-                  case "SWAP0":
-                  continue;
-                  case "SWAP1":
-                  continue;
-                  case "SWAP2":
-                  continue;
-                  case "SWAP3":
-                  continue;
-                  case "SWAP4":
-                  continue;
-                  case "SWAP5":
-                  continue;
-                  case "SWAP6":
-                  continue;
-                  case "SWAP7":
-                  continue;
-                  case "SWAP8":
-                  continue;
-                  case "SWAP9":
-                  continue;
-                  case "SWAP0":
-                  continue;
-                  case "DUP0":
-                  continue;
-                  case "DUP1":
-                  continue;
-                  case "DUP2":
-                  continue;
-                  case "DUP3":
-                  continue;
-                  case "DUP4":
-                  continue;
-                  case "DUP5":
-                  continue;
-                  case "DUP6":
-                  continue;
-                  case "DUP7":
-                  continue;
-                  case "DUP8":
-                  continue;
-                  case "DUP9":
-                  continue;
-                  }
-                //lookup colour in array
-                var colour = logs[x].colour;
-
-                graphtools_label.push(opcode);
-                var colour_array = ["aliceblue", "antiquewhite", 	"antiquewhite1","antiquewhite2", 	"antiquewhite3",
-                  "antiquewhite4","aquamarine","aquamarine1","aquamarine2","aquamarine3",
-                  "aquamarine4", 	"azure", 	"azure1" ,"azure2", 	"azure3",
-                  "azure4",
-                  "beige",
-                  "bisque",
-                  "bisque1",
-                  "bisque2",
-                  "bisque3" ,
-                  "bisque4",
-                  "black ",
-                  "blanchedalmond ",
-                  "blue ",
-                  "blue1 ",
-                  "blue2 ",
-                  "blue3 	",
-                  "blue4",
-                  "blueviolet",
-                  "brown",
-                  "brown1",
-                  "brown2",
-                  "brown3",
-                  "brown4",
-                  "burlywood",
-                  "burlywood1",
-                  "burlywood2",
-                  "burlywood3",
-                  "burlywood4",
-                  "cadetblue",
-                  "cadetblue1",
-                  "cadetblue2",
-                  "cadetblue3",
-                  "cadetblue4",
-                  "chartreuse",
-                  "chartreuse1",
-                  "chartreuse2",
-                  "chartreuse3",
-                  "chartreuse4",
-                  "chocolate",
-                  "chocolate1",
-                  "chocolate2",
-                  "chocolate3",
-                  "chocolate4",
-                  "coral ",
-                  "coral1 ",
-                  "coral2 ",
-                  "coral3 ",
-                  "coral4",
-                  "cornflowerblue ",
-                  "cornsilk ",
-                  "cornsilk1 	",
-                  "cornsilk2 ",
-                  "cornsilk3",
-                  "cornsilk4",
-                  "crimson ",
-                  "cyan",
-                  "cyan1",
-                  "cyan2",
-                  "cyan3",
-                  "cyan4",
-                  "darkgoldenrod",
-                  "darkgoldenrod1",
-                  "darkgoldenrod2",
-                  "darkgoldenrod3",
-                  "darkgoldenrod4",
-                  "darkgreen",
-                  "darkkhaki",
-                  "darkolivegreen",
-                  "darkolivegreen1",
-                  "darkolivegreen2",
-                  "darkolivegreen3",
-                  "darkolivegreen4",
-                  "darkorange",
-                  "darkorange1",
-                  "darkorange2",
-                  "darkorange3",
-                  "darkorange4",
-                  "darkorchid",
-                  "darkorchid1",
-                  "darkorchid2",
-                  "darkorchid3",
-                  "darkorchid4",
-                  "darksalmon",
-                  "darkseagreen",
-                  "darkseagreen1",
-                  "darkseagreen2",
-                  "darkseagreen3",
-                  "darkseagreen4",
-                  "darkslateblue",
-                  "darkslategray",
-                  "darkslategray1",
-                  "darkslategray2",
-                  "darkslategray3",
-                  "darkslategray4",
-                  "darkslategrey",
-                  "darkturquoise",
-                  "darkviolet",
-                  "deeppink",
-                  "deeppink1",
-                  "deeppink2",
-                  "deeppink3",
-                  "deeppink4",
-                  "deepskyblue",
-
-                  "deepskyblue1",
-                  "deepskyblue2",
-                  "deepskyblue3",
-                  "deepskyblue4",
-                  "dimgray",
-                  "dimgrey",
-                  "dodgerblue",
-                  "dodgerblue1",
-                  "dodgerblue2",
-                  "dodgerblue3",
-                  "dodgerblue4",
-                  "firebrick",
-                  "firebrick1",
-                  "firebrick2",
-                  "firebrick3",
-                  "firebrick4",
-                  "floralwhite",
-                  "forestgreen",
-                  "gainsboro",
-                  "ghostwhite",
-
-                  "gold",
-                  "gold1",
-                  "gold2",
-                  "gold3",
-                  "gold4",
-                  "goldenrod",
-                  "goldenrod1",
-                  "goldenrod2",
-                  "goldenrod3",
-                  "goldenrod4","yellow","hotpink","peru","magenta"];
-
-                var color_string = colour_array[colour];
-
-
-                var sigma_colour_array=["#f0f8ff",
-                  "#faebd7",
-                  "#ffefdb",
-                  "#eedfcc",
-                  "#cdc0b0",
-                  "#8b8378",
-                  "#7fffd4",
-                  "#7fffd4",
-                  "#76eec6",
-                  "#66cdaa",
-                  "#458b74",
-                  "#f0ffff",
-                  "#f0ffff",
-                  "#e0eeee",
-                  "#c1cdcd",
-                  "#838b8b",
-                  "#f5f5dc",
-                  "#ffe4c4",
-                  "#ffe4c4",
-                  "#eed5b7",
-                  "#cdb79e",
-                  "#8b7d6b",
-                  "#000000",
-                  "#ffebcd",
-                  "#0000ff",
-                  "#0000ff",
-                  "#0000ee",
-                  "#0000cd",
-                  "#00008b",
-                  "#8a2be2",
-                  "#a52a2a",
-                  "#ff4040",
-                  "#ee3b3b",
-                  "#cd3333",
-                  "#8b2323",
-                  "#deb887",
-                  "#ffd39b",
-                  "#eec591",
-                  "#cdaa7d",
-                  "#8b7355",
-                  "#5f9ea0",
-                  "#98f5ff",
-                  "#8ee5ee",
-                  "#7ac5cd",
-                  "#53868b",
-                  "#7fff00",
-                  "#7fff00",
-                  "#76ee00",
-                  "#66cd00",
-                  "#458b00",
-                  "#d2691e",
-                  "#ff7f24",
-                  "#ee7621",
-                  "#cd661d",
-                  "#8b4513",
-                  "#ff7f50",
-                  "#ff7256",
-                  "#ee6a50",
-                  "#cd5b45",
-                  "#8b3e2f",
-                  "#6495ed",
-                  "#fff8dc",
-                  "#fff8dc",
-                  "#eee8cd",
-                  "#cdc8b1",
-                  "#8b8878",
-                  "#dc143c",
-                  "#00ffff",
-                  "#00ffff",
-                  "#00eeee",
-                  "#00cdcd",
-                  "#008b8b",
-                  "#b8860b",
-                  "#ffb90f",
-                  "#eead0e",
-                  "#cd950c",
-                  "#8b6508",
-                  "#006400",
-                  "#bdb76b",
-                  "#556b2f",
-                  "#caff70",
-                  "#bcee68",
-                  "#a2cd5a",
-                  "#6e8b3d",
-                  "#ff8c00",
-                  "#ff7f00",
-                  "#ee7600",
-                  "#cd6600",
-                  "#8b4500",
-                  "#9932cc",
-                  "#bf3eff",
-                  "#b23aee",
-                  "#9a32cd",
-                  "#68228b",
-                  "#e9967a",
-                  "#8fbc8f",
-                  "#c1ffc1",
-                  "#b4eeb4",
-                  "#9bcd9b",
-                  "#698b69",
-                  "#483d8b",
-                  "#2f4f4f",
-                  "#97ffff",
-                  "#8deeee",
-                  "#79cdcd",
-                  "#528b8b",
-                  "#2f4f4f",
-                  "#00ced1",
-                  "#9400d3",
-                  "#ff1493",
-                  "#ff1493",
-                  "#ee1289",
-                  "#cd1076",
-                  "#8b0a50",
-                  "#00bfff",
-                  "#00bfff",
-                  "#00b2ee",
-                  "#009acd",
-                  "#00688b",
-                  "#696969",
-                  "#696969",
-                  "#1e90ff",
-                  "#1e90ff",
-                  "#1c86ee",
-                  "#1874cd",
-                  "#104e8b",
-                  "#b22222",
-                  "#ff3030",
-                  "#ee2c2c",
-                  "#cd2626",
-                  "#8b1a1a",
-                  "#fffaf0",
-                  "#228b22",
-                  "#dcdcdc",
-                  "#f8f8ff",
-                  "#ffd700",
-                  "#ffd700",
-                  "#eec900",
-                  "#cdad00",
-                  "#8b7500",
-                  "#daa520",
-                  "#ffc125",
-                  "#eeb422",
-                  "#cd9b1d",
-                  "#8b6914",
-                  "#c0c0c0",
-                  "#000000",
-                  "#030303",
-                  "#1a1a1a",
-                  "#ffffff"];
-                //if the colour for the particular opcode is not defined then do:
-                var color_string_sigma=sigma_colour_array[colour];
-                graphtools_color.push(color_string_sigma); //graph tools understands hex
-
-
-                if(typeof(logs[x].colour)!==undefined){
-                  //console.log(logs[x].step +" [label=\""+logs[x].op+"\", style=filled, color=" + color_string+"]"); // kept for legacy, incase of needing to pipe
-                  res_str=res_str.concat(logs[x].step);
-                  res_str=res_str.concat(" [label=\"");
-                  res_str=res_str.concat(logs[x].op);
-                  res_str=res_str.concat("\", style=filled, color=");
-                  res_str=res_str.concat(color_string);
-                  res_str=res_str.concat("]");
-                  res_str=res_str.concat("\n");
-                  //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
-                  //graphml format
-                  res_str_gml=res_str_gml.concat("<node id=\"");
-                  res_str_gml=res_str_gml.concat(logs[x].step);
-                  res_str_gml=res_str_gml.concat("\"/>\n");
-                  //sigmaobj format
-                  var x_coord = Math.floor((Math.random() * 100) + 1);//randomly generate coordinates for starting position
-                  var y_coord =Math.floor((Math.random() * 100) + 1);
-                  //section to find what colour the nodes should be - should be according to opcode, that gives an index number for graphviz
-                  var labelplusstep=(logs[x].op).concat(" ",logs[x].step)
-
-                  sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":color_string_sigma, "size":10 });
-                }
-                //if the colour has been defined (in modify json) then do:
-                else{
-                  //  console.log(logs[x].step +" [label=\""+logs[x].op+"\"]"); // kept for legacy, incase of needing to pipe
-                  res_str=res_str.concat(logs[x].step);
-                  res_str=res_str.concat(" [label=\"");
-                  res_str=res_str.concat(logs[x].op);
-                  res_str=res_str.concat("\"]");
-                  res_str=res_str.concat("\n");
-                  //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
-                  //graphml format
-                  res_str_gml=res_str_gml.concat("<node id=");
-                  res_str_gml=res_str_gml.concat(logs[x].step);
-                  res_str_gml=res_str_gml.concat("\"/>\n");
-                  //sigmaobj format
-                  var x_coord = Math.floor((Math.random() * 100) + 1);
-                  var y_coord =Math.floor((Math.random() * 100) + 1);
-                  var labelplusstep=(logs[x].op).concat(" ",logs[x].step) //was just logs[x].op
-                  sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":"rgb(90,90,90)", "size":10 });
-                }
-                //now do edges!!!
-                var l = logs[x].arg_origins.length;
-                for(var y=0;y<l;y++){
-                  // console.log(logs[x].arg_origins[y].step + " -> " + logs[x].step + " [label=\""+logs[x].arg_origins[y].value+"\", fontcolor=antiquewhite]");
-                  res_str=res_str.concat(logs[x].arg_origins[y].step);
-                  res_str=res_str.concat(" -> ");
-                  res_str=res_str.concat(logs[x].step);
-                  res_str=res_str.concat(" [label=\"");
-                  var hexstr="0x";
-                  var short_label = logs[x].arg_origins[y].value;
-                  short_label=short_label.replace(/^[0]+/g,"");//getting rid of leading zeroes
-                  hexstr=hexstr.concat(short_label);
-                  // res_str=res_str.concat(logs[x].arg_origins[y].value); //commented out in favour of the short_label
-                  res_str=res_str.concat(hexstr);
-                  res_str=res_str.concat("\", fontcolor=antiquewhite]");
-                  res_str=res_str.concat("\n");
-                  //modifed graph tools format
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step);
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(" -> ");
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
-                  res_str_dot_no_lbl=res_str_dot_no_lbl.concat("\n");
-                  //graphml format
-                  res_str_gml=res_str_gml.concat("<edge source=\"");
-                  res_str_gml=res_str_gml.concat(logs[x].arg_origins[y].step);
-                  res_str_gml=res_str_gml.concat("\" target=\"");
-                  res_str_gml=res_str_gml.concat(logs[x].step);
-                  res_str_gml=res_str_gml.concat("\"/>\n");
-                  //sigmaobj format
-                  var sigma_edge_index = x.toString(); //think about this, need a unique string, coming from and going to combined is unique
-                  sigma_edge_index=sigma_edge_index.concat("to");
-                  sigma_edge_index=sigma_edge_index.concat((y.toString()))
-                  sigmaobj.edges.push({"id":sigma_edge_index, "source":(logs[x].arg_origins[y].step).toString(), "target":(logs[x].step).toString(),"color":"#006666"});
-                }
-            }
-            //console.log(suffix); //finish graphviz format
-            res_str=res_str.concat(suffix);
-            res_str=res_str.concat("\n");
-            //finish graphml format
-            res_str_gml=res_str_gml.concat("</graph>\n");
-            res_str_gml=res_str_gml.concat("</graphml>\n");
-            //simple dot
-            res_str_dot_no_lbl=res_str_dot_no_lbl.concat("}\n");
-            res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
-            //find transaction ID/hash
-            console.log("trans_list_counter: "+trans_list_counter)
+            //   var graphtools_color = []; // for storing label and color for graph tools. this is saved to db
+            //   var graphtools_label =[];
+            //   res_str = ""; // reset at the start!!
+            //   // res_str = graph_format.generate_graph_format(output);  // get graphviz formatted output
+            //   res_str_gml="";
+            //   var sigmaobj={
+            //     "edges":[],
+            //     "nodes":[]
+            //   }
+            //
+            //   res_str_dot_no_lbl=""; // this holds format for graph tools
+            //
+            //   var prefix = "\`digraph{";
+            //   var suffix = "}\`\n";
+            //   var newline = '\n';
+            //   //require("./graphviz_config.js"); //pull in settings for graph
+            //   //console.log(prefix); //print prefix - start of graph format
+            //
+            //   //graphml formatting
+            //   res_str_gml=res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            //   res_str_gml=res_str_gml.concat("<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n");
+            //   res_str_gml=res_str_gml.concat("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+            //   res_str_gml=res_str_gml.concat("xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n");
+            //   res_str_gml=res_str_gml.concat("<graph id=\"G\" edgedefault=\"undirected\">\n");
+            //
+            //
+            //   res_str=res_str.concat(prefix);
+            //   res_str=res_str.concat(newline);
+            //
+            //   res_str_dot_no_lbl=res_str_dot_no_lbl.concat("digraph{");
+            //   res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
+            //
+            //   // console.log("edge[color=antiquewhite]");//set array colour
+            //   res_str=res_str.concat("edge[color=antiquewhite] ");
+            //   res_str=res_str.concat(newline);
+            //   // console.log("bgcolor=black") //set background color
+            //   res_str=res_str.concat("bgcolor=black");
+            //   res_str=res_str.concat(newline);
+            //
+            //   // var logs = output; //legacy
+            //   var logs= TwoDarraymodified[graph_depth]; // new line, used to be the above
+            //   for(var x=0;x<logs.length;x++){
+            //     // if(logs[x].depth != 1){continue;} //critical for multidepth - comment back in to revert
+            //     //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
+            //     var opcode = logs[x].op;
+            //
+            //     if(SINGLE_NODES_OFF){
+            //       if(TwoDChecklist[graph_depth][x] >=1){
+            //         console.log("single (Unconnected) node "+logs[x].step+" which is a "+logs[x].op+"...skipping!")
+            //         continue;
+            //       }
+            //     }
+            //     switch(opcode){
+            //       case "SWAP0":
+            //       continue;
+            //       case "SWAP1":
+            //       continue;
+            //       case "SWAP2":
+            //       continue;
+            //       case "SWAP3":
+            //       continue;
+            //       case "SWAP4":
+            //       continue;
+            //       case "SWAP5":
+            //       continue;
+            //       case "SWAP6":
+            //       continue;
+            //       case "SWAP7":
+            //       continue;
+            //       case "SWAP8":
+            //       continue;
+            //       case "SWAP9":
+            //       continue;
+            //       case "SWAP0":
+            //       continue;
+            //       case "DUP0":
+            //       continue;
+            //       case "DUP1":
+            //       continue;
+            //       case "DUP2":
+            //       continue;
+            //       case "DUP3":
+            //       continue;
+            //       case "DUP4":
+            //       continue;
+            //       case "DUP5":
+            //       continue;
+            //       case "DUP6":
+            //       continue;
+            //       case "DUP7":
+            //       continue;
+            //       case "DUP8":
+            //       continue;
+            //       case "DUP9":
+            //       continue;
+            //       }
+            //     //lookup colour in array
+            //     var colour = logs[x].colour;
+            //
+            //     graphtools_label.push(opcode);
+            //     const import_colour_arrays = require("../config/generate_graph_config.js");
+            //     var colour_array=import_colour_arrays.colour_array;
+            //     var sigma_colour_array = import_colour_arrays.sigma_colour_array;
+            //     var color_string = colour_array[colour];
+            //     var color_string_sigma=sigma_colour_array[colour];
+            //     graphtools_color.push(color_string_sigma); //graph tools understands hex
+            //
+            //     //if the colour for the particular opcode is not defined then do:
+            //     if(typeof(logs[x].colour)!==undefined){
+            //       //console.log(logs[x].step +" [label=\""+logs[x].op+"\", style=filled, color=" + color_string+"]"); // kept for legacy, incase of needing to pipe
+            //       res_str=res_str.concat(logs[x].step);
+            //       res_str=res_str.concat(" [label=\"");
+            //       res_str=res_str.concat(logs[x].op);
+            //       res_str=res_str.concat("\", style=filled, color=");
+            //       res_str=res_str.concat(color_string);
+            //       res_str=res_str.concat("]");
+            //       res_str=res_str.concat("\n");
+            //       //modifed graph tools format
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
+            //       //graphml format
+            //       res_str_gml=res_str_gml.concat("<node id=\"");
+            //       res_str_gml=res_str_gml.concat(logs[x].step);
+            //       res_str_gml=res_str_gml.concat("\"/>\n");
+            //       //sigmaobj format
+            //       var x_coord = Math.floor((Math.random() * 100) + 1);//randomly generate coordinates for starting position
+            //       var y_coord =Math.floor((Math.random() * 100) + 1);
+            //       //section to find what colour the nodes should be - should be according to opcode, that gives an index number for graphviz
+            //       var labelplusstep=(logs[x].op).concat(" ",logs[x].step)
+            //
+            //       sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":color_string_sigma, "size":10 });
+            //     }
+            //     //if the colour has been defined (in modify json) then do:
+            //     else{
+            //       //  console.log(logs[x].step +" [label=\""+logs[x].op+"\"]"); // kept for legacy, incase of needing to pipe
+            //       res_str=res_str.concat(logs[x].step);
+            //       res_str=res_str.concat(" [label=\"");
+            //       res_str=res_str.concat(logs[x].op);
+            //       res_str=res_str.concat("\"]");
+            //       res_str=res_str.concat("\n");
+            //       //modifed graph tools format
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
+            //       //graphml format
+            //       res_str_gml=res_str_gml.concat("<node id=");
+            //       res_str_gml=res_str_gml.concat(logs[x].step);
+            //       res_str_gml=res_str_gml.concat("\"/>\n");
+            //       //sigmaobj format
+            //       var x_coord = Math.floor((Math.random() * 100) + 1);
+            //       var y_coord =Math.floor((Math.random() * 100) + 1);
+            //       var labelplusstep=(logs[x].op).concat(" ",logs[x].step) //was just logs[x].op
+            //       sigmaobj.nodes.push({"id":(logs[x].step).toString(),"x": x_coord, "y":y_coord,"label": labelplusstep, "color":"rgb(90,90,90)", "size":10 });
+            //     }
+            //     //now do edges!!!
+            //     var l = logs[x].arg_origins.length;
+            //     for(var y=0;y<l;y++){
+            //       // console.log(logs[x].arg_origins[y].step + " -> " + logs[x].step + " [label=\""+logs[x].arg_origins[y].value+"\", fontcolor=antiquewhite]");
+            //       res_str=res_str.concat(logs[x].arg_origins[y].step);
+            //       res_str=res_str.concat(" -> ");
+            //       res_str=res_str.concat(logs[x].step);
+            //       res_str=res_str.concat(" [label=\"");
+            //       var hexstr="0x";
+            //       var short_label = logs[x].arg_origins[y].value;
+            //       short_label=short_label.replace(/^[0]+/g,"");//getting rid of leading zeroes
+            //       hexstr=hexstr.concat(short_label);
+            //       // res_str=res_str.concat(logs[x].arg_origins[y].value); //commented out in favour of the short_label
+            //       res_str=res_str.concat(hexstr);
+            //       res_str=res_str.concat("\", fontcolor=antiquewhite]");
+            //       res_str=res_str.concat("\n");
+            //       //modifed graph tools format
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].arg_origins[y].step);
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(" -> ");
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat(logs[x].step);
+            //       res_str_dot_no_lbl=res_str_dot_no_lbl.concat("\n");
+            //       //graphml format
+            //       res_str_gml=res_str_gml.concat("<edge source=\"");
+            //       res_str_gml=res_str_gml.concat(logs[x].arg_origins[y].step);
+            //       res_str_gml=res_str_gml.concat("\" target=\"");
+            //       res_str_gml=res_str_gml.concat(logs[x].step);
+            //       res_str_gml=res_str_gml.concat("\"/>\n");
+            //       //sigmaobj format
+            //       var sigma_edge_index = x.toString(); //think about this, need a unique string, coming from and going to combined is unique
+            //       sigma_edge_index=sigma_edge_index.concat("to");
+            //       sigma_edge_index=sigma_edge_index.concat((y.toString()))
+            //       sigmaobj.edges.push({"id":sigma_edge_index, "source":(logs[x].arg_origins[y].step).toString(), "target":(logs[x].step).toString(),"color":"#006666"});
+            //     }
+            // }
+            // //console.log(suffix); //finish graphviz format
+            // res_str=res_str.concat(suffix);
+            // res_str=res_str.concat("\n");
+            // //finish graphml format
+            // res_str_gml=res_str_gml.concat("</graph>\n");
+            // res_str_gml=res_str_gml.concat("</graphml>\n");
+            // //simple dot
+            // res_str_dot_no_lbl=res_str_dot_no_lbl.concat("}\n");
+            // res_str_dot_no_lbl=res_str_dot_no_lbl.concat(newline);
+            // //find transaction ID/hash
+            // console.log("trans_list_counter: "+trans_list_counter)
 
             // var trans_hash = getTransID(_passed_block_num,trans_list_counter); //why -1??
+
+            var res_str = format.res_str;
+            var res_str_gml=format.res_str_gml;
+            var res_str_dot_no_lbl=format.res_str_dot_no_lbl;
+            var sigmaobj = format.sigmaobj;
+            var graphtools_label=format.graphtools_label;
+            var graphtools_color=format.graphtools_color;
+
+
+
+
             var trans_hash = transHash[trans_list_counter]//-1 as int_trans is 1 indexed
             //console.log("int_trans is "+ int_trans)
             console.log("transHash is "+transHash)
@@ -675,7 +401,59 @@ var gen_graph_prom = function(passed_trans_list){
             }
             //save to db
             console.log("trace found and graph made"); //graph depth is the memory depth
-            db2.save_trans_to_db(trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,graph_depth); //passing block number, transaction_no, graph output.
+            console.log("now going to make graph tools pic")
+            // console.log(graphtools_color)
+            var dotfilepath=randomstring.generate(7);// for some reason phython is requiring that it be in the same directory
+            // dotfilepath=dotfilepath.concat("_",pic_gen)
+            dotfilepath=dotfilepath.concat(".dot");
+
+            db2.save_trans_to_db(trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,
+              num_return,graph_depth,dotfilepath); //passing block number, transaction_no, graph output
+////////////////
+            var spawn = require('child_process').spawn,
+                py    = spawn('python', ['python_module.py']);
+                console.log("PID"+py.pid)
+            // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
+            //write file to disk temporaily.
+            console.log("saving to: " + dotfilepath)
+            fs.writeFile(dotfilepath,res_str_dot_no_lbl, function(err){ //must create a file first
+              if(err){
+                console.log("there was an error writing to file" + err);
+              }
+              //now send this dot file path to the python module which will make the graph
+              console.log("now writing to python module!!!!!!!!!!!!")
+              py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
+              py.stdin.write("\n")
+              py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
+              py.stdin.write("\n")
+              py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
+              py.stdin.write("\n");
+              py.stdin.end();
+            });
+            var dataString=""; //variable to store return from python module
+            py.stdout.on('data', function(data){ // listen for data coming back from python!
+              dataString += data.toString();
+            });
+
+            py.stdout.on('end', function(){ //pythons stdout has finished - now do stuff
+              console.log(dataString); // print out everything collected from python stdout
+              //now delete temp dot file (with all dot files in it)
+              fs.stat(dotfilepath, function (err, stats) { //check first if there is a dot file
+                console.log(stats);//here we got all information of file in stats variable
+                if (err) {
+                    return console.error(err);
+                }
+                fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
+                     if(err) return console.log(err);
+                     console.log('file deleted successfully');
+                });//end unlink
+              });//end file stat
+              py.stdout.end();
+
+            }); // on python 'finish'
+
+
+
           } //end of for each depth loop
         }//end of if result.result != undefined
 

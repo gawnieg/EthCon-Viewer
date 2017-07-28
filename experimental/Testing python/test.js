@@ -1,8 +1,8 @@
 //start.js
 
-var spawn = require('child_process').spawn,
-    py    = spawn('python', ['compute_input.py'],{stdio: 'pipe'}),
-    data = [1,2,3,4,5,6,7,8,9],
+// var spawn = require('child_process').spawn,
+//     py    = spawn('python', ['compute_input.py'],{stdio: 'pipe'}),
+    var data = [1,2,3,4,5,6,7,8,9],
     dataString = '';
     var samplefp = "./sample.dot"
     var otherfp = "yurt4life"
@@ -17,7 +17,9 @@ for(i=0;i<hugearray.length;i++){
 
 
 }
-// for(i=0;i < 5; i++){
+for(i=0;i < 5; i++){
+  var spawn = require('child_process').spawn,
+      py    = spawn('python', ['compute_input.py']);
   py.stdout.on('data', function(data){
     dataString += data.toString();
   });
@@ -30,7 +32,7 @@ for(i=0;i<hugearray.length;i++){
   // // py.stdin.end();
   py.stdin.write(JSON.stringify(samplefp));
   py.stdin.end();
-
+}
 
 
   function Create2DArray(rows) {
