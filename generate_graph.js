@@ -33,7 +33,7 @@ const mod_json = require("./modify_json_depth.js")// for different stack depths
 
 Web3 = require("web3");
 var web3 = new Web3();
-web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
+web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));
 
 module.exports={
   generate_graph_for_blocks: function(_passed_num_blocks, _passed_block_num){
