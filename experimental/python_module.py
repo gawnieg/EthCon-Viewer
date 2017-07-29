@@ -45,15 +45,15 @@ def main():
         res.append(y)
         y=str(y)
         filename = fileaddress
-        filename = filename + str(i)
-        filename = filename + ".dot"
+        # filename = filename + str(i)
+        # filename = filename + ".dot"
         print("saving to " +filename)
         with open(filename, "w") as text_file:
             text_file.write(y)
 
         #now check if the file is already there
 
-        fcheckname = "./public/pics/"+filename+".dot"+".png"
+        fcheckname = "./public/pics/"+filename+".png"
         print("checking to see if graph is already there at "+ fcheckname)
         isthere = os.path.isfile(fcheckname) # this will be True if there file is already there
         edge_des_color = [0.9,0.9,0.8,0.9]#this is edge colour

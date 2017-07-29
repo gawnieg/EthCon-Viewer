@@ -1,0 +1,28 @@
+<html>
+
+
+<body>
+  Contract view!!
+  <script>
+  var picsToView = <%- JSON.stringify(picsToView)%>
+  console.log("picsToView:"+picsToView)
+
+  picsToView.forEach(function(pic){
+    var x = document.createElement("IMG");
+    var picpath="/pics/"
+    picpath = picpath.concat(pic,".png");
+    x.setAttribute("src", picpath);
+    x.setAttribute("title",picpath)
+    x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+    document.body.appendChild(x);
+  })
+
+
+
+
+
+  </script>
+</body>
+
+
+</html>
