@@ -18,26 +18,34 @@ app.get("/contract",function(req,res){
   console.log(contractTransList)
   //now check if we need to generate graphs or what?
   // console.log("going to try find "+contractTransList[0])
-  for(var index=0; index<contractTransList.length;index++){
+  // for(var index=0; index<contractTransList.length;index++){
     console.log("quering db")
-    find_in_db(contractTransList[index],callback,contractTransList,index)
-  }
+    find_in_db(contractTransList,callback)
+  // }
 
-  // console.log(foundInDB);
-
-  // graph_gen_for_contract.gen_graph_promise(contractTransList)
   res.send("yurt4life")
 
 })
 
-var callback = function(items,contractTransList,transListIndex){
-  console.log("YURT SON");
-  console.log("there were: "+items.length + "items found in the db");
+
+
+
+
+var callback = function(){
+  console.log("Callback: there were: "+items.length + "items found in the db");
+  console.log("transListIndex: "+transListIndex)
   if(!items.length){
     console.log("need to carry out graph gen for these");
     var temp_array = [];
     temp_array.push(contractTransList[transListIndex]);
-    graph_gen_for_contract.gen_graph_promise(temp_array)
+    graph_gen_for_contract.gen_graph_promise(temp_array,displayGraphs)
+  }
+  //if all the pictures are in the db, which
+  else{
+
+
+
+
   }
 
 
@@ -49,16 +57,16 @@ app.listen(7000,function(){
 })
 
 // // Read all documents
-function find_in_db(_trans_no,callback,contractTransList,transListIndex){
+function find_in_db(contractTransList,callback,displayGraphs){
 mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
     .then(function(db){
             return db.collection('test')
                 .then(function(col) {
-                    return col.find({transaction_no : _trans_no}).toArray()
+                    return col.find({transaction_no : {$in: contractTransList}}).toArray()
                         .then(function(items) {
                             console.log("db replied")
                             // console.log(items);
-                            db.close().then(callback(items,contractTransList,transListIndex));
+                            db.close().then(callback(displayGraphs));
                         })
             })
 })

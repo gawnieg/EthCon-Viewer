@@ -14,12 +14,13 @@ web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));
 var transHash = [];
 module.exports={
 
-  gen_graph_promise: function(_passed_trans_list){ // NOTE this is expecting an array!!!
-    transHash=[];
+  gen_graph_promise: function(_passed_trans_list,displayGraphs){ // NOTE this is expecting an array!!!
+    //  transHash=[];
     for(var lst_i=0; lst_i<parseInt(_passed_trans_list.length); lst_i++){
       transHash.push(_passed_trans_list[lst_i]);
     }
-    return gen_graph_prom(_passed_trans_list);
+    console.log("_passed_trans_list is "+_passed_trans_list)
+    return gen_graph_prom(_passed_trans_list,displayGraphs);
   }
 
 }
@@ -27,9 +28,9 @@ module.exports={
 var trans_list_counter=0;
 
 
-var gen_graph_prom = function(passed_trans_list){
+var gen_graph_prom = function(passed_trans_list,displayGraphs){
   return new Promise(function(resolve,reject){
-    trans_list_counter=0; //reset trans_list_counter
+    // trans_list_counter=0; //reset trans_list_counter
     var res_str="";// string for storing dot format- MAY NOT be right to place here
     var res_str_gml=""; //for graphml format
     var res_str_dot_no_lbl=""; //experimental for python graph tools
@@ -177,10 +178,12 @@ var gen_graph_prom = function(passed_trans_list){
               var sigmaobj = format.sigmaobj;
               var graphtools_label=format.graphtools_label;
               var graphtools_color=format.graphtools_color;
-              var trans_hash = transHash[trans_list_counter]//-1 as int_trans is 1 indexed
-              //console.log("int_trans is "+ int_trans)
+              var trans_hash = transHash[trans_list_counter]//was [trans_list_counter]
+              console.log()
+              console.log("trans_list_counter is "+ trans_list_counter)
               console.log("transHash is "+transHash)
               console.log("trans_hash is "+trans_hash)
+              console.log()
               //updating trans_list_counter which is a global variable that is sent to find the trans hash
               if(graph_depth==1){
                   if(TwoDarraymodified.length >1)
@@ -194,7 +197,8 @@ var gen_graph_prom = function(passed_trans_list){
               // dotfilepath=dotfilepath.concat("_",pic_gen)
               dotfilepath=dotfilepath.concat(".dot");
 
-              db2.save_trans_to_db(trans_hash,res_str,res_str_gml,sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,
+              db2.save_trans_to_db(trans_hash,res_str,res_str_gml,
+                sigmaobj,res_str_dot_no_lbl,graphtools_label,graphtools_color,
                 num_return,graph_depth,dotfilepath); //passing block number, transaction_no, graph output
   ////////////////
               var spawn = require('child_process').spawn,
