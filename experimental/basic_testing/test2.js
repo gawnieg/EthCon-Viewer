@@ -1,12 +1,26 @@
-Array.prototype.diff = function(a){
-  return this.filter(function(i){
-    return a.indexOf(i)<0;
-  });
-};
-var have = [1,2,3];
-var need = [1,2,3,4,5];
+const rp = require("request-promise")
+console.log("yurt")
+const options = {
+  method: 'GET',
+  uri: 'http://api.etherscan.io/api',
+  qs:{
+    module:"account",
+    action:"txlist",
+    address:"0xb62ef4c58f3997424b0cceab28811633201706bc",
+    startblock:4048890,
+    endblock:4048894,
+    sort:"asc",
+    apikey:"W3ME1J7QWZZS6E82TM8YAZCGN48V2V893"
+  }
 
-var need_to_get_blocks = need.diff(have);
-need_to_get_blocks.forEach(function(e){
-  console.log(e)
-})
+}
+
+​
+rp(options)
+  .then(function (response) {
+    // Request was successful, use the response object at will
+    console.log(response)
+  })
+  .catch(function (err) {
+    // Something bad happened, handle the error
+  })

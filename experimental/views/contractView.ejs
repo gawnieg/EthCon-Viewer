@@ -3,6 +3,7 @@
 
 <body>
   Contract view!!
+  <body style="background-color:#000000">
   <script>
   var picsToView = <%- JSON.stringify(picsToView)%>
   console.log("picsToView:"+picsToView)
@@ -16,10 +17,6 @@
     x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
     document.body.appendChild(x);
   })
-
-
-
-
 
   </script>
 </body>

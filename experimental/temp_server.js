@@ -4,31 +4,53 @@ const transfinder = require("./all_trans_per_contract.js")
 const graph_gen_for_contract = require("./generate_graph_for_contract.js")
 var MongoClient = require('mongodb').MongoClient;
 var mp = require('mongodb-promise');
+const rp = require("request-promise")
 //visit http://localhost:7000/contract?contract=0xfbc76d976777c44cd01069664885da3acfad87b2
+const bodyParser = require("body-parser")
+app.use(bodyParser.json())
 
 app.set('view engine','ejs')
-//app.use(express.static('src'))
 app.use(express.static(__dirname+'/public'));
 
 
 app.get("/contract",function(req,res){
 
   var viewContract = req.query.contract; // read in from URL
-  var startBlock = parseInt(req.query.start);
-  var endBlock = parseInt(req.query.end);
-  console.log("checking "+(endBlock-startBlock))
-  console.log("want to trans for view: "+viewContract);
-  var contractTransList = transfinder.getTransactionsByAccount(viewContract.toString(),startBlock,endBlock)
-  console.log("finished getting transactions for that account")
-  console.log(contractTransList)
-  //now check if we need to generate graphs or what?
-  // console.log("going to try find "+contractTransList[0])
-  // for(var index=0; index<contractTransList.length;index++){
-    console.log("quering db")
-    find_in_db(contractTransList,callback,res)
-  // }
-
-  // res.send("yurt4life")
+  var _startBlock = parseInt(req.query.start);
+  var _endBlock = parseInt(req.query.end);
+  console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
+  // var contractTransList = transfinder.getTransactionsByAccount(viewContract.toString(),startBlock,endBlock)
+  const options = {
+    method: 'GET',
+    uri: 'http://api.etherscan.io/api',
+    qs:{
+      module:"account",
+      action:"txlist",
+      address:"0xb62ef4c58f3997424b0cceab28811633201706bc",
+      startblock:_startBlock,
+      endblock:_endBlock,
+      sort:"asc",
+      apikey:"W3ME1J7QWZZS6E82TM8YAZCGN48V2V893"
+    },
+    json: true
+  }
+  rp(options)
+    .then(function (response) {
+      // Request was successful, use the response object at will
+      // console.log(JSON.stringify(response))
+      var etherscanResponse = response.result;
+      var status = response.status;
+      console.log("status"+status)
+      var contractTransList =[];
+      etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
+        contractTransList.push(trans.hash)
+      })
+      console.log("contractTransList is "+contractTransList)
+      find_in_db(contractTransList,callback,res);
+    })
+    .catch(function (err) {
+      // Something bad happened, handle the error
+    })
 
 })
 
@@ -49,7 +71,7 @@ var callback = function(contractTransList,found_trans,res){
     });
   };
   var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
-  if(needToFindTrans.length){
+  if(needToFindTrans.length){ //if there are ones that need to be generated
     console.log("Callback: need to carry out graph gen for these: " +needToFindTrans);
     graph_gen_for_contract.gen_graph_promise(needToFindTrans)
   }
