@@ -131,8 +131,12 @@ var gen_graph_prom = function(passed_trans_list,displayGraphs){
             //put results into this array - it is 1 indexed
             for(var depth=1;depth<=array_filled_length;depth++){
               console.log("generating graph format for: " + depth)
-              TwoDarraymodified[depth]=mod_json.modify_diff_depth(TwoDarrayWithDepths[depth]); //Modifying JSON!!!
-
+              try{ // new try catch seems to be working! produces blank digraphs!
+                TwoDarraymodified[depth]=mod_json.modify_diff_depth(TwoDarrayWithDepths[depth]); //Modifying JSON!!!
+              }
+              catch(err){
+                console.log("huge error: "+err)
+              }
               /*SECTION TO ISOLATE SINGLE NODES!!!
               1/ large array is generated for each step number with 2's in it
               2. each time this step is mentioned, the corresponding position in the array is decremented
