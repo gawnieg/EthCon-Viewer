@@ -25,6 +25,7 @@ def main():
     colorarray = fromstdin[1]
     labelarray = fromstdin[2]
     namingarray =fromstdin[3]
+    print(colorarray)
     #then load file
     #then split in memory according to "}"
     #then save into seperate files

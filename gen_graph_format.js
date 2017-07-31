@@ -85,13 +85,13 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       }
     //lookup colour in array
     var colour = logs[x].colour;
-
     returnObj.graphtools_label.push(opcode);
     const import_colour_arrays = require("./config/generate_graph_config.js");
     var colour_array=import_colour_arrays.colour_array;
     var sigma_colour_array = import_colour_arrays.sigma_colour_array;
     var color_string = colour_array[colour];
-    var color_string_sigma=sigma_colour_array[colour];
+    // var color_string_sigma=sigma_colour_array[colour]; //old to get frm number before each had its wn hex
+    var color_string_sigma=logs[x].hexcolour.toString();
     returnObj.graphtools_color.push(color_string_sigma); //graph tools understands hex
 
     //if the colour for the particular opcode is not defined then do:

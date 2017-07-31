@@ -136,7 +136,7 @@ module.exports={
     "goldenrod3",
     "goldenrod4","yellow","hotpink","peru","magenta"],
 
-   sigma_colour_array:["#f0f8ff",
+sigma_colour_array:["#f0f8ff",
     "#faebd7",
     "#ffefdb",
     "#eedfcc",
