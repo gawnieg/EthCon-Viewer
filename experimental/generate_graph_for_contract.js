@@ -136,54 +136,56 @@ function web3call(int_trans, contracts_trans_list){
               num_return,
               graph_depth,
               tempname); //passing block number, transaction_no, graph output
-            // pythonGraphTools(dotfilepath,res_str_dot_no_lbl,graphtools_color,graphtools_label)
-            //for multidepth need to concat all graph format strings before calling, python process is only called once per depth
+
           } //end of for each depth loop
 
+          pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphtools_label,transHashArray)
 
-        var spawn = require('child_process').spawn,
-            py    = spawn('python', ['python_module.py']);
-        // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
-        //write file to disk temporaily.
-        console.log("saving to: " + dotfilepath)
-        console.log("allGraphsPerTrans: " +allGraphsPerTrans )
-        console.log("transHashArray: "+ transHashArray)
-        fs.writeFile(dotfilepath,allGraphsPerTrans, function(err){ //must create a file first //2nd param was res_str_dot_no_lbl
-          if(err){
-            console.log("there was an error writing to file" + err);
-          }
-          //now send this dot file path to the python module which will make the graph
-          console.log("now writing to python module!"+py.pid)
-          py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
-          py.stdin.write("\n")
-          py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
-          py.stdin.write("\n")
-          py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
-          py.stdin.write("\n");
-          py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
-          py.stdin.write("\n");
-          py.stdin.end();
-        });
-        var dataString=""; //variable to store return from python module
-        py.stdout.on('data', function(data){ // listen for data coming back from python!
-          dataString += data.toString();
-        });
 
-        py.stdout.on('end', function(){ //pythons stdout has finished - now do stuff
-          console.log(dataString); // print out everything collected from python stdout
-          //now delete temp dot file (with all dot files in it)
-          fs.stat(dotfilepath, function (err, stats) { //check first if there is a dot file
-            console.log(stats);//here we got all information of file in stats variable
-            if (err) {
-                return console.error(err);
-            }
-            fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
-                 if(err) return console.log(err);
-                 console.log('file deleted successfully');
-            });//end unlink
-          });//end file stat
-          py.stdout.end();
-        }); // on python 'finish'
+
+        // var spawn = require('child_process').spawn,
+        //     py    = spawn('python', ['python_module.py']);
+        // // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
+        // //write file to disk temporaily.
+        // console.log("saving to: " + dotfilepath)
+        // console.log("allGraphsPerTrans: " +allGraphsPerTrans )
+        // console.log("transHashArray: "+ transHashArray)
+        // fs.writeFile(dotfilepath,allGraphsPerTrans, function(err){ //must create a file first //2nd param was res_str_dot_no_lbl
+        //   if(err){
+        //     console.log("there was an error writing to file" + err);
+        //   }
+        //   //now send this dot file path to the python module which will make the graph
+        //   console.log("now writing to python module!"+py.pid)
+        //   py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
+        //   py.stdin.write("\n")
+        //   py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
+        //   py.stdin.write("\n")
+        //   py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
+        //   py.stdin.write("\n");
+        //   py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
+        //   py.stdin.write("\n");
+        //   py.stdin.end();
+        // });
+        // var dataString=""; //variable to store return from python module
+        // py.stdout.on('data', function(data){ // listen for data coming back from python!
+        //   dataString += data.toString();
+        // });
+        //
+        // py.stdout.on('end', function(){ //pythons stdout has finished - now do stuff
+        //   console.log(dataString); // print out everything collected from python stdout
+        //   //now delete temp dot file (with all dot files in it)
+        //   fs.stat(dotfilepath, function (err, stats) { //check first if there is a dot file
+        //     console.log(stats);//here we got all information of file in stats variable
+        //     if (err) {
+        //         return console.error(err);
+        //     }
+        //     fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
+        //          if(err) return console.log(err);
+        //          console.log('file deleted successfully');
+        //     });//end unlink
+        //   });//end file stat
+        //   py.stdout.end();
+        // }); // on python 'finish'
 
 
       }//end of if result.result != undefined
@@ -285,24 +287,27 @@ function isolateSingleNodes(TwoDarraymodified,TwoDChecklist,depth){
 
 
 
-function pythonGraphTools(dotfilepath,res_str_dot_no_lbl,graphtools_color,graphtools_label){
+function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphtools_label,transHashArray){
   var spawn = require('child_process').spawn,
       py    = spawn('python', ['python_module.py']);
-      console.log("PID"+py.pid)
   // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
   //write file to disk temporaily.
   console.log("saving to: " + dotfilepath)
-  fs.writeFile(dotfilepath,res_str_dot_no_lbl, function(err){ //must create a file first
+  console.log("allGraphsPerTrans: " +allGraphsPerTrans )
+  console.log("transHashArray: "+ transHashArray)
+  fs.writeFile(dotfilepath,allGraphsPerTrans, function(err){ //must create a file first //2nd param was res_str_dot_no_lbl
     if(err){
       console.log("there was an error writing to file" + err);
     }
     //now send this dot file path to the python module which will make the graph
-    console.log("now writing to python module!!!!!!!!!!!!")
+    console.log("now writing to python module!"+py.pid)
     py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
     py.stdin.write("\n")
     py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
     py.stdin.write("\n")
     py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
+    py.stdin.write("\n");
+    py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
     py.stdin.write("\n");
     py.stdin.end();
   });
@@ -325,7 +330,6 @@ function pythonGraphTools(dotfilepath,res_str_dot_no_lbl,graphtools_color,grapht
       });//end unlink
     });//end file stat
     py.stdout.end();
-
   }); // on python 'finish'
 }
 

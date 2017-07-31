@@ -6,6 +6,11 @@ var MongoClient = require('mongodb').MongoClient;
 var mp = require('mongodb-promise');
 const rp = require("request-promise")
 //visit http://localhost:7000/contract?contract=0xfbc76d976777c44cd01069664885da3acfad87b2
+/*
+depth level = 2 http://localhost:7000/contract?contract=0x88aA042c4AaE423E0F1bb48542b473d1dD20a807&start=4048908&end=4048912
+depth level = 1 http://localhost:7000/contract?contract=0xb62ef4c58f3997424b0cceab28811633201706bc&start=3000000&end=4048938
+
+*/
 const bodyParser = require("body-parser")
 app.use(bodyParser.json())
 
