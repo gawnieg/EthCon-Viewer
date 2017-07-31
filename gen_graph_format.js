@@ -33,12 +33,25 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
     //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
     var opcode = logs[x].op;
 
+
+
+
+
     if(SINGLE_NODES_OFF){
       if(TwoDChecklist[graph_depth][x] >=1){
         console.log("single (Unconnected) node "+logs[x].step+" which is a "+logs[x].op+"...skipping!")
         continue;
       }
     }
+    //to reduce computation
+    if(opcode=="JUMPDEST"){
+      continue;
+    }
+
+
+
+
+
     switch(opcode){
       case "SWAP0":
       continue;

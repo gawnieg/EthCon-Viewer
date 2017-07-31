@@ -4,7 +4,7 @@
   var graphtools_color= ["#a3c2c2","#a3c2c2"];
   var graphtools_label=["yurt","yurt"];
   var transHashArray= ["fAKEPIC"]
-const fs = require("fs")
+  const fs = require("fs")
 
 
 var dotfilepath = "SampleTestPython.dot"
