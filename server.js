@@ -5,7 +5,10 @@ const db2 = require("./database2.js")
 var MongoClient = require('mongodb').MongoClient;
 var mp = require('mongodb-promise');
 const fs = require("fs")
-
+const transfinder = require("./all_trans_per_contract.js")
+const graph_gen_for_contract = require("./generate_graph_for_contract.js")
+const rp = require("request-promise")
+const bodyParser = require("body-parser")
 
 //var url = "mongodb://localhost:27017/test?socketTimeoutMS=90000";
 var url = "mongodb://localhost:27017/test";
@@ -13,6 +16,7 @@ var url = "mongodb://localhost:27017/test";
 app.set('view engine','ejs')
 //app.use(express.static('src'))
 app.use(express.static(__dirname+'/public'));
+app.use(bodyParser.json())
 
 // uses vis.js library
 app.get('/api/vis', function(req, res) {
@@ -528,6 +532,113 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
   .fail(function(err) {console.log(err)});
 })//end of express route
 
+
+
+
+app.get("/contract",function(req,res){
+
+  var viewContract = req.query.contract; // read in from URL
+  viewContract=viewContract.toString();
+  var _startBlock = parseInt(req.query.start);
+  var _endBlock = parseInt(req.query.end);
+  console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
+  // var contractTransList = transfinder.getTransactionsByAccount(viewContract.toString(),startBlock,endBlock)
+  const options = {
+    method: 'GET',
+    uri: 'http://api.etherscan.io/api',
+    qs:{
+      module:"account",
+      action:"txlist",
+      address:viewContract,
+      startblock:_startBlock,
+      endblock:_endBlock,
+      sort:"asc",
+      apikey:"W3ME1J7QWZZS6E82TM8YAZCGN48V2V893"
+    },
+    json: true
+  }
+  rp(options)
+    .then(function (response) {
+      // Request was successful, use the response object at will
+      // console.log(JSON.stringify(response))
+      var etherscanResponse = response.result;
+      var status = response.status;
+      console.log("status"+status)
+      if(status){
+        var contractTransList =[];
+        etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
+          contractTransList.push(trans.hash)
+        })
+        console.log("contractTransList is "+contractTransList)
+        find_in_db(contractTransList,callback,res);
+      }
+      else{
+        console.log("SERVER ERROR!!! CANNOT CONNECT TO ETHERSCAN")
+      }
+    })
+    .catch(function (err) {
+      // Something bad happened, handle the error
+      console.log("SERVER ERROR: "+err)
+    })
+
+})
+
+
+
+
+var callback = function(contractTransList,found_trans,res){
+  var found_trans_list=[];
+  found_trans.forEach(function(trans){//get transactions number from each object found
+    found_trans_list.push(trans.transaction_no);
+  })
+  console.log("Callback: there were: "+found_trans.length + "items found in the db");
+  console.log("Callback: we need a min of "+contractTransList.length+" items..")
+  Array.prototype.diff = function(a){
+    return this.filter(function(i){
+      return a.indexOf(i)<0;
+    });
+  };
+  var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
+  if(needToFindTrans.length){ //if there are ones that need to be generated
+    console.log("Callback: need to carry out graph gen for these: " +needToFindTrans);
+    graph_gen_for_contract.gen_graph_promise(needToFindTrans)
+  }
+  //if all the pictures are in the db
+  else{
+    //get pictures random string names
+    var picsToView = [];
+    found_trans.forEach(function(index){
+      picsToView.push(index.randomHash);
+    })
+    //now render to screen
+    console.log("picsToView: "+picsToView)
+    res.render("contractView.ejs",{
+      picsToView:picsToView
+    });
+  }
+
+
+}
+
+function find_in_db(contractTransList,callback,res){
+  mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
+      .then(function(db){
+              return db.collection('test')
+                  .then(function(col) {
+                      return col.find({transaction_no : {$in: contractTransList}}).toArray()
+                          .then(function(items) {
+                              console.log("db replied")
+                              var found_trans =[]
+                              items.forEach(function(item){
+                                found_trans.push(item);//the whole object
+                              })
+
+                              db.close().then(callback(contractTransList,found_trans,res));
+                          })
+              })
+  })
+  .fail(function(err) {console.log(err)});
+}
 
 app.listen(3005, function () {
   console.log('Example app listening on port 3001!')
