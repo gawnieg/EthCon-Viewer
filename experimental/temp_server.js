@@ -47,15 +47,21 @@ app.get("/contract",function(req,res){
       var etherscanResponse = response.result;
       var status = response.status;
       console.log("status"+status)
-      var contractTransList =[];
-      etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
-        contractTransList.push(trans.hash)
-      })
-      console.log("contractTransList is "+contractTransList)
-      find_in_db(contractTransList,callback,res);
+      if(status){
+        var contractTransList =[];
+        etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
+          contractTransList.push(trans.hash)
+        })
+        console.log("contractTransList is "+contractTransList)
+        find_in_db(contractTransList,callback,res);
+      }
+      else{
+        console.log("SERVER ERROR!!! CANNOT CONNECT TO ETHERSCAN")
+      }
     })
     .catch(function (err) {
       // Something bad happened, handle the error
+      console.log("SERVER ERROR: "+err)
     })
 
 })
@@ -70,7 +76,7 @@ var callback = function(contractTransList,found_trans,res){
     found_trans_list.push(trans.transaction_no);
   })
   console.log("Callback: there were: "+found_trans.length + "items found in the db");
-  console.log("Callback: we needed "+contractTransList.length+" items..")
+  console.log("Callback: we need a min of "+contractTransList.length+" items..")
   Array.prototype.diff = function(a){
     return this.filter(function(i){
       return a.indexOf(i)<0;

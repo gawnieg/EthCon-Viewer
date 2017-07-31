@@ -44,19 +44,12 @@ def main():
         y=y+"}" # put it back in!
         res.append(y)
         y=str(y)
-        print("y is ",y)
-
-        #filename = fileaddress #WAS THIS
-        filename = namingarray[i]
-
-        # filename = filename + str(i)
-        # filename = filename + ".dot"
+        filename = namingarray[i] # the graph formats and the names <transHash_depthNum> are in order
         print("saving to " +filename)
         with open(filename, "w") as text_file:
             text_file.write(y)
 
         #now check if the file is already there
-
         fcheckname = "./public/pics/"+filename+".png"
         print("checking to see if graph is already there at "+ fcheckname)
         isthere = os.path.isfile(fcheckname) # this will be True if there file is already there
