@@ -48,70 +48,26 @@ function web3call(int_trans, contracts_trans_list){
       id:"2"},
       function(err,result){
         if(result.result!=undefined){
-              /* start of new section to deal with multi depth trans*/
+          /*
+          1. sort into an array with the appropraite depths
+          2. trace and modify json to create json that includes instructions for graph format generator
+          3. get rid of single nodes
+          4. generate various graph formats
+          5. send to python module to generate actual graph tool pics
+          6. save to mongodb
+          */
           var orig_steps=result.result.structLogs;
-            //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
-            var SINGLE_NODES_OFF = 1;
-
-
+          var SINGLE_NODES_OFF = 1;//if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
           //this seperates the structLogs into their own files according to depth. Depth ==11 does not mean 11 stack files!
           //will be more than 11 array entries for depth ==11 but not definite
-          //third effort 20.07.17
-          var TwoDarrayWithDepths = Create2DArray(2000);
-          //making the array with a loop [1,2,3,4,5 ....2000]
-          // array to store what memory array the depth level needs to be stored at
-          var needs_new_mem=[];
-          for(var newarray_i=0;newarray_i<2000;newarray_i++){
-            needs_new_mem.push(newarray_i+1);
-          }
-          var mem_index=1; //variable to hold global array index for depth tracker
-          for(var index=0;index<orig_steps.length;index++){
-            var currentDepth=orig_steps[index].depth;
-            if(currentDepth==1 && orig_steps[index].pc ==0){ // for the very first step, need this as the rest work off the basis of difference between depths
-              // console.log("starting!!")
-              needs_new_mem[currentDepth]=mem_index;
-              orig_steps[index].grapharray = needs_new_mem[currentDepth]; //set field in json to what array it should be put into before modification
-              mem_index++; //increament this global array number
-            }
-            if(index>0){ //for not the first step. First step would cause index-1 to be looked up and this would return undefined
-              // if(Math.abs(orig_steps[index].depth-orig_steps[index-1].depth) == 1){
-              //   console.log("Depth is :"+orig_steps[index].depth+ " && pc is: "+ orig_steps[index].pc)
-              // }
-              var previousDepth = orig_steps[index-1].depth
-              //from left to right - increasing stack depth
-              if(currentDepth-previousDepth ==1){ //if increasing the stack depth then the global incrementer should increase
-                //should store at
-                needs_new_mem[currentDepth]=mem_index
-                orig_steps[index].grapharray = needs_new_mem[currentDepth]; // create a field in the json saying where it should be stored
-                // console.log("LTR should be stored in "+needs_new_mem[currentDepth])
-                // console.log("printing needs_new_mem array:"+needs_new_mem)
-                mem_index++;
-              }
-              //from right to left
-              else if(previousDepth -currentDepth==1){
-                // console.log("RTL should store in "+ needs_new_mem[currentDepth])
-                orig_steps[index].grapharray = needs_new_mem[currentDepth];
-                // console.log("printing needs_new_mem array:"+needs_new_mem)
-              }
-              else{
-                  orig_steps[index].grapharray = orig_steps[index-1].grapharray
-              }
-            }
-          }
-          //now go through the json and extract out into teh twodarray
-          for(index=0;index<orig_steps.length;index++){
-            //now place into 2D array accordinging to grapharray property
-            TwoDarrayWithDepths[orig_steps[index].grapharray].push(orig_steps[index])
-          }
+          var TwoDarrayWithDepths= sortDepth(orig_steps); //refactored so that this sorting into depths is done in a seperate function
+
           //now depth sorter is finished
           //now find which arrays are populated and get rid of the excess
           var filledlength=0; // variable how long each subarray is
           var array_filled_length=0;
           for(var i=0;i<TwoDarrayWithDepths.length;i++){
-
             if(TwoDarrayWithDepths[i].length >0){
-              // console.log(i + " is populated")
-              console.log("checking TwoDarrayDepth["+ i +"]" + TwoDarrayWithDepths[i].length)
               filledlength = TwoDarrayWithDepths[i].length;
               if(filledlength>0){
                 array_filled_length++;
@@ -121,7 +77,7 @@ function web3call(int_trans, contracts_trans_list){
 
           //now delete elemets of array that are not needed - unfilled
           TwoDarrayWithDepths = TwoDarrayWithDepths.slice(0,array_filled_length+1);
-          console.log("there are "+ array_filled_length + " depths to this transaction")
+          console.log("there are "+ array_filled_length + " depths to this transaction"+contracts_trans_list[int_trans])
           //then for each in this array
           var num_return=TwoDarrayWithDepths.length-1; // this will be stored into a db to facilitate more accurate naming in the python graph generation module
 
@@ -139,45 +95,19 @@ function web3call(int_trans, contracts_trans_list){
             catch(err){
               console.log("huge error: "+err)
             }
-            /*SECTION TO ISOLATE SINGLE NODES!!!
-            1/ large array is generated for each step number with 2's in it
-            2. each time this step is mentioned, the corresponding position in the array is decremented
-            3. if it reaches 0 (more than 2 mentions) it is not a single node and should be included
+            //create checklist that will elimminate singular nodes
 
-             */
-            //generate large array of 2's
-            var checklist= fillArray(2,(TwoDarraymodified[depth].length+1)) //function declared below
-            console.log("generating checklist for getting rid of single nodes...")
-            //new section to prevent singular nodes from displaying
-            for(var step_index=0; step_index<TwoDarraymodified[depth].length;step_index++){ // for each step number in each TwoDarraymodified array
-              //for each step if it appears in either
-              var this_step = TwoDarraymodified[depth][step_index].step;
-              // console.log("regristering "+ this_step)
-              //take 1 from checklist
-              checklist[this_step]=checklist[this_step]-1; //decrementing one!
-              // now if something is leading to/from this node then itll not be a single node
-              for(var arg_org_i=0;arg_org_i<TwoDarraymodified[depth][step_index].arg_origins.length; arg_org_i++){
-                var mark_present = TwoDarraymodified[depth][step_index].arg_origins[arg_org_i].step;
-                var mark_present_2 =  TwoDarraymodified[depth][step_index].step;
-                if(mark_present!=undefined){
-                  // console.log(mark_present+ " is not a single node!")
-                  checklist[mark_present]=checklist[mark_present]-1;
-                  checklist[mark_present_2]=checklist[mark_present_2]-1;
-                }
-                else{
-                  console.log("something is undefined")
-                }
-              }
-            }
-            TwoDChecklist[depth]=checklist; //assign over value of checklist to a 2d array to hold then so they can be used later on!
+             TwoDChecklist = isolateSingleNodes(TwoDarraymodified,TwoDChecklist,depth);
+
           }
+
           console.log("TwoDarraymodified (modify_diff_depth output) length" + TwoDarraymodified.length)
           /* end of getting rid of duplicates section */
           const graphFormat = require("../gen_graph_format.js")
-          /* new loop for depth>1 */
+          // for each depth level generate its own graph
           for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
 
-            var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist);
+            var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist); //seperate function to loop throuhg and generate formats
             var res_str = format.res_str;
             var res_str_gml=format.res_str_gml;
             var res_str_dot_no_lbl=format.res_str_dot_no_lbl;
@@ -246,6 +176,91 @@ function web3call(int_trans, contracts_trans_list){
 }
 
 
+function sortDepth(orig_steps){
+  var TwoDarrayWithDepths = Create2DArray(2000);
+  //making the array with a loop [1,2,3,4,5 ....2000]
+  // array to store what memory array the depth level needs to be stored at
+  var needs_new_mem=[];
+  for(var newarray_i=0;newarray_i<2000;newarray_i++){
+    needs_new_mem.push(newarray_i+1);
+  }
+  var mem_index=1; //variable to hold global array index for depth tracker
+  for(var index=0;index<orig_steps.length;index++){
+    var currentDepth=orig_steps[index].depth;
+    if(currentDepth==1 && orig_steps[index].pc ==0){ // for the very first step, need this as the rest work off the basis of difference between depths
+      // console.log("starting!!")
+      needs_new_mem[currentDepth]=mem_index;
+      orig_steps[index].grapharray = needs_new_mem[currentDepth]; //set field in json to what array it should be put into before modification
+      mem_index++; //increament this global array number
+    }
+    if(index>0){ //for not the first step. First step would cause index-1 to be looked up and this would return undefined
+      // if(Math.abs(orig_steps[index].depth-orig_steps[index-1].depth) == 1){
+      //   console.log("Depth is :"+orig_steps[index].depth+ " && pc is: "+ orig_steps[index].pc)
+      // }
+      var previousDepth = orig_steps[index-1].depth
+      //from left to right - increasing stack depth
+      if(currentDepth-previousDepth ==1){ //if increasing the stack depth then the global incrementer should increase
+        //should store at
+        needs_new_mem[currentDepth]=mem_index
+        orig_steps[index].grapharray = needs_new_mem[currentDepth]; // create a field in the json saying where it should be stored
+        // console.log("LTR should be stored in "+needs_new_mem[currentDepth])
+        // console.log("printing needs_new_mem array:"+needs_new_mem)
+        mem_index++;
+      }
+      //from right to left
+      else if(previousDepth -currentDepth==1){
+        // console.log("RTL should store in "+ needs_new_mem[currentDepth])
+        orig_steps[index].grapharray = needs_new_mem[currentDepth];
+        // console.log("printing needs_new_mem array:"+needs_new_mem)
+      }
+      else{
+          orig_steps[index].grapharray = orig_steps[index-1].grapharray
+      }
+    }
+  }
+  //now go through the json and extract out into teh twodarray
+  for(index=0;index<orig_steps.length;index++){
+    //now place into 2D array accordinging to grapharray property
+    TwoDarrayWithDepths[orig_steps[index].grapharray].push(orig_steps[index])
+  }
+  return TwoDarrayWithDepths;
+}
+
+
+
+function isolateSingleNodes(TwoDarraymodified,TwoDChecklist,depth){
+  /*SECTION TO ISOLATE SINGLE NODES!!!
+  1/ large array is generated for each step number with 2's in it
+  2. each time this step is mentioned, the corresponding position in the array is decremented
+  3. if it reaches 0 (more than 2 mentions) it is not a single node and should be included
+   */
+  //generate large array of 2's
+  var checklist= fillArray(2,(TwoDarraymodified[depth].length+1)) //function declared below
+  console.log("generating checklist for getting rid of single nodes...")
+  //new section to prevent singular nodes from displaying
+  for(var step_index=0; step_index<TwoDarraymodified[depth].length;step_index++){ // for each step number in each TwoDarraymodified array
+    //for each step if it appears in either
+    var this_step = TwoDarraymodified[depth][step_index].step;
+    // console.log("regristering "+ this_step)
+    //take 1 from checklist
+    checklist[this_step]=checklist[this_step]-1; //decrementing one!
+    // now if something is leading to/from this node then itll not be a single node
+    for(var arg_org_i=0;arg_org_i<TwoDarraymodified[depth][step_index].arg_origins.length; arg_org_i++){
+      var mark_present = TwoDarraymodified[depth][step_index].arg_origins[arg_org_i].step;
+      var mark_present_2 =  TwoDarraymodified[depth][step_index].step;
+      if(mark_present!=undefined){
+        // console.log(mark_present+ " is not a single node!")
+        checklist[mark_present]=checklist[mark_present]-1;
+        checklist[mark_present_2]=checklist[mark_present_2]-1;
+      }
+      else{
+        console.log("something is undefined")
+      }
+    }
+  }
+  TwoDChecklist[depth]=checklist; //assign over value of checklist to a 2d array to hold then so they can be used later on!
+  return TwoDChecklist;
+}
 
 
 
