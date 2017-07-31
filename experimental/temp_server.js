@@ -16,6 +16,7 @@ app.use(express.static(__dirname+'/public'));
 app.get("/contract",function(req,res){
 
   var viewContract = req.query.contract; // read in from URL
+  viewContract=viewContract.toString();
   var _startBlock = parseInt(req.query.start);
   var _endBlock = parseInt(req.query.end);
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
@@ -26,7 +27,7 @@ app.get("/contract",function(req,res){
     qs:{
       module:"account",
       action:"txlist",
-      address:"0xb62ef4c58f3997424b0cceab28811633201706bc",
+      address:viewContract,
       startblock:_startBlock,
       endblock:_endBlock,
       sort:"asc",

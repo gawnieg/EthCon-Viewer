@@ -24,7 +24,7 @@ def main():
 
     colorarray = fromstdin[1]
     labelarray = fromstdin[2]
-
+    namingarray =fromstdin[3]
     #then load file
     #then split in memory according to "}"
     #then save into seperate files
@@ -44,7 +44,11 @@ def main():
         y=y+"}" # put it back in!
         res.append(y)
         y=str(y)
-        filename = fileaddress
+        print("y is ",y)
+
+        #filename = fileaddress #WAS THIS
+        filename = namingarray[i]
+
         # filename = filename + str(i)
         # filename = filename + ".dot"
         print("saving to " +filename)
@@ -74,10 +78,11 @@ def main():
             #now actually draw graph and save to folderout
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
             graph_draw(g, vertex_fill_color=v_prop2, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
+
             #new section to update mongo to say that the graph has been generated
-            data =[{"randomHash":str(fileaddress)}]
-            print("attempting to update "+str(fileaddress))
-            toupdate=str(fileaddress)
+            data =[{"randomHash":str(filename)}]
+            print("attempting to update "+str(filename))
+            toupdate=str(filename)
             for d in data:
                 coll.update( {"randomHash": toupdate},{"$set": {"graphToolsGen": 1}})
                 print("updated DB")
