@@ -29,9 +29,6 @@ function find_add_remove_nums(opcode){
     and thus we will colour accordingly.
     Colours are defined in ./config/generate_graph_config
 */
-
-
-
   switch(opcode) {
     case "STOP":
     var r= {c: 0, p:0, colour:66} //crimson
@@ -467,56 +464,28 @@ function modify_structLogs(sLogs){
   var stack_origins=[];
   var length = sLogs.length;
 
-  //console.log("modify_structLogs has been called");
-  //console.log("lenght of slogs.lenght is " + length);
   for(var i=0; i<length;i++ ){
     // console.log("--------------NEXT STEP--------------"+i)
     output.push(sLogs[i]);
-    // if(sLogs[i].depth==1){
-    // console.log("opcode is "+sLogs[i].op)
       sLogs[i].step=step_number;
       step_number+=1;
       c_r = find_add_remove_nums((sLogs[i].op));
-      //console.log("for "+ i+ " found c to be" + JSON.stringify(c_r));
       c =c_r.c;
-
       var colour = c_r.colour;
       var hexcolour = c_r.hexcolour;
       sLogs[i].colour = colour;
       sLogs[i].hexcolour= hexcolour;
-      
+
       var length_stack_origin= stack_origins.length;
       sLogs[i].arg_origins=stack_origins.slice((length_stack_origin-c),length_stack_origin);
       var length_arg_origin= sLogs[i].arg_origins.length;
 
-      // console.log("length_arg_origin is " + length_arg_origin);
-      // //now print stack_origin -DEBUGGING
-      // console.log("now printing stack_origins")
-      // for(var i0=0; i0<stack_origins.length;i0++){
-      //   console.log(stack_origins[i0]);
-      // }
-      //  console.log("now printing stack")
-      //       for(var i0=0; i0<sLogs[i].stack.length;i0++){
-      //         console.log(sLogs[i].stack[i0]);
-      //       }
-
-            //experimental - think the problem is that the
-
-
-
       for(var idx=0; idx< length_arg_origin; idx++){
-        // console.log("idx is "+idx);
-        // console.log("length_stack_origin"+ length_stack_origin);
-        // console.log("c is "+c);
-        // console.log("length_stack_origin-c+idx) is "+(length_stack_origin-c+idx));
         v=sLogs[i].stack[(length_stack_origin-c+idx)]; //changed, was using slice for some reason
-        // console.log("in idx loop, setting "+v);
         sLogs[i].arg_origins[idx].value=v;
       }
       stack_origins=update_stack_origins(stack_origins,sLogs[i]);
-    // } // if depth==1
   }
-
   return output;
 }
 
@@ -604,22 +573,13 @@ function update_stack_origins(orig,sLog){
   orig_length= orig.length;
   orig=orig.slice(0,(orig_length-c));
   var here = origin(1,sLog.step);
-  // console.log("update_stack_origins p is "+p);
-  // console.log("here is "+JSON.stringify(here))
-  //var new_elements= new Array(p,here);//wrong
-  if(p==1){
-    // console.log("p is equal to 1!!!")
+  if(p==1){ //only one thing was created to the stack, put this into an array by itself
     var new_elements= new Array(here);
-      // console.log("new elements is" + JSON.stringify(new_elements));
   }
-  if(p==0){
-      // console.log("p is equal to 0!!!")
+  if(p==0){//nothing new was created
     var new_elements = [];
-    // console.log("new elements is" + JSON.stringify(new_elements));
   }
-
   orig = orig.concat(new_elements);
-  // console.log("orig is " + JSON.stringify(orig))
   return orig;
 
 }
@@ -650,8 +610,6 @@ function update_stack_origins_dup(orig,number){
 function modify_input(input){
   var output;
   output = modify_structLogs(input.structLogs);
-  // console.log("printing output: ")
-  // console.log(JSON.stringify(output));
   return output;
 }
 function modify_diff_depth(_input){ //special version for multidepth
@@ -659,9 +617,3 @@ function modify_diff_depth(_input){ //special version for multidepth
   output =modify_structLogs(_input);
   return output;
 }
-
-
-
-//main
-//var input_json = require("./shortened_json.json");
-// var input_json = require("./short_json_with_SWAP.json");
