@@ -214,18 +214,18 @@ app.get('/api/sigmamult', function(req, res) {
                       return col.find({block_num : {$in: reqBlockArray}}).toArray()
                           .then(function(items) {
                             console.log("found "+items.length+" items for this block in DB!")
-
+                            //if we need to get blocks then this if will be true
                             if(items.length<reqBlockArray.length){
                               console.log("but need "+reqBlockArray.length + "blocks")
                               var foundBlocksInDB = [];//to store what is found in db
                               items.forEach(function(block){
                                   foundBlocksInDB.push(block);
                               })
-                              db.close().then(sigmaMultiCallback(foundBlocksInDB,reqBlockArray))
+                              db.close().then(sigmaMultiCallback(foundBlocksInDB,reqBlockArray)) // callback that see's which blocks are needed and runs add_blocks_graph_to_db
                               .then(function (){
                                   res.send("refresh page shortly")
                                 });
-                            }//if items present
+                            }
                             //else if we found enough items in the db
                             else if (items.length>= reqBlockArray.length) {
                               console.log("found sufficient items, gonna coagulate now..")
@@ -270,7 +270,7 @@ var sigmaMultiCallback = function(foundDB, reqBlockArray){
 
 
 function generateSigmaCombinedObject(items){
-  console.log("generateSigmaCombinedObject called!")
+  // console.log("generateSigmaCombinedObject called!")
   var multiobj={//object to store coagulated results
     nodes:[],
     edges:[]
@@ -284,7 +284,7 @@ function generateSigmaCombinedObject(items){
   for(var indexl=0;indexl<items.length;indexl++){
     var r_sigma = items[indexl].sigmaobj;
     if(r_sigma!=null){
-      console.log("finding real length "+indexl)
+      // console.log("finding real length "+indexl)
       for(var findl=0;findl<r_sigma.nodes.length;findl++){
         var tempnodeobj=parseInt(r_sigma.nodes[findl].id);
         if(tempnodeobj>realLenghtOfNodes[indexl]){
@@ -322,14 +322,14 @@ function generateSigmaCombinedObject(items){
         for(var ii=0;ii<i;ii++){ // for the remaining items found in the db
         //  console.log("=items[ii].sigmaobj.nodes.length" +items[ii].sigmaobj.nodes.length)
           // additional_length_node+=items[ii].sigmaobj.nodes.length; // add up all the lenghts of previous and add on. note index i
-          console.log("adding "+realLenghtOfNodes[ii])
+          // console.log("adding "+realLenghtOfNodes[ii])
           additional_length_node+=realLenghtOfNodes[ii]
         }
-        console.log("additional_length_node on i: "+i+" is "+additional_length_node);
+        // console.log("additional_length_node on i: "+i+" is "+additional_length_node);
         for(var iii=0; iii<r_sigma.nodes.length;iii++){
           var newnodeid= parseInt(r_sigma.nodes[iii].id) +additional_length_node;
           //r_sigma.nodes[iii].id = newnodeid.toString();
-          console.log("newnodeid is "+ newnodeid)
+          // console.log("newnodeid is "+ newnodeid)
           //now push to first object
           var oldx = r_sigma.nodes[iii].x;
           var oldy = r_sigma.nodes[iii].y;
