@@ -275,44 +275,40 @@ function generateSigmaCombinedObject(items){
     nodes:[],
     edges:[]
   };
-  //DEBUGGING
-  items.forEach(function(item){
-    console.log("item lenght is "+item.sigmaobj.nodes.length)
-  })
   //NOTE some ID's are missing since JUMPDEST is missing. must take different approach to lenght
   // to avoid conflict on naming id's
-  console.log("finding real id lengths")
   var realLenghtOfNodes=[];
-  // items.forEach(function(item,indexl){
-    for(var indexl=0;indexl<items.length;indexl++){
-      var r_sigma = items[indexl].sigmaobj;
-      if(r_sigma!=null){
-        console.log("finding real length "+indexl)
-        for(var findl=0;findl<r_sigma.nodes.length;findl++){
-          var tempnodeobj=parseInt(r_sigma.nodes[findl].id);
-          if(tempnodeobj>realLenghtOfNodes[indexl]){
-            console.log("highest is now: "+tempnodeobj)
-            realLenghtOfNodes[indexl]=tempnodeobj;
-          }
+  for(var rl=0;rl<items.length;rl++){
+    realLenghtOfNodes.push(0);//fill with zeroes!
+  }
+  for(var indexl=0;indexl<items.length;indexl++){
+    var r_sigma = items[indexl].sigmaobj;
+    if(r_sigma!=null){
+      console.log("finding real length "+indexl)
+      for(var findl=0;findl<r_sigma.nodes.length;findl++){
+        var tempnodeobj=parseInt(r_sigma.nodes[findl].id);
+        if(tempnodeobj>realLenghtOfNodes[indexl]){
+          realLenghtOfNodes[indexl]=tempnodeobj;
         }
       }
     }
-  // })
+  }
   console.log("realLenghtOfNodes is :"+realLenghtOfNodes)
+  //add one to all of realLenghtOfNodes
+  for(var p1=0;p1<realLenghtOfNodes.length;p1++){
+    realLenghtOfNodes[p1]=  realLenghtOfNodes[p1]+1;
+  }
 
 
   for(var i=0;i<items.length;i++){
     //find max value in each r_sigma
-
     if(items[i].sigmaobj!=null){
       var r_sigma = items[i].sigmaobj; // no toString needed since this is an object
       //for first block just copy over each object
       if(i==0){
         for(var i_nodes=0;i_nodes<r_sigma.nodes.length;i_nodes++){
-
-          console.log("i is 1 and id is: "+tempnodeobj.id)//debugging
+          var tempnodeobj = r_sigma.nodes[i_nodes];
           multiobj.nodes.push(tempnodeobj); // push to combined results object
-          //find the greatest id seen in i=0
         }
         for(var i_edges=0;i_edges<r_sigma.edges.length;i_edges++){
           var tempnodeobj=r_sigma.edges[i_edges];
@@ -323,9 +319,11 @@ function generateSigmaCombinedObject(items){
       if(i>0){
         //add length to nodes
         var additional_length_node=0; //this is the offset
-        for(var ii=0;ii<=i;ii++){ // for the remaining items found in the db
+        for(var ii=0;ii<i;ii++){ // for the remaining items found in the db
         //  console.log("=items[ii].sigmaobj.nodes.length" +items[ii].sigmaobj.nodes.length)
-          additional_length_node+=items[ii].sigmaobj.nodes.length; // add up all the lenghts of previous and add on. note index i
+          // additional_length_node+=items[ii].sigmaobj.nodes.length; // add up all the lenghts of previous and add on. note index i
+          console.log("adding "+realLenghtOfNodes[ii])
+          additional_length_node+=realLenghtOfNodes[ii]
         }
         console.log("additional_length_node on i: "+i+" is "+additional_length_node);
         for(var iii=0; iii<r_sigma.nodes.length;iii++){
