@@ -17,14 +17,14 @@ function find_add_remove_nums(opcode){
   //console.log("Getting values for "+opcode);
   /*according to comae.io and porosity opcodes are split into these broad groups
     - Arithmetic Operations.
-     - Comparison & Bitwise Logic Operations.
-     - SHA3.
-     - Environmental Information.
-     - Block Information.
-     - Stack, Memory, Storage and Flow Operations.
-     - Push/Duplication/Pop/Exchange Operations.
-     - Logging Operations.
-     - System Operations
+     - Comparison & Bitwise Logic Operations.-> Arithmetic=blue, comparison = green
+     - SHA3. //orange
+     - Environmental Information.//light to darkening yellow
+     - Block Information.//beige/yellowish
+     - Stack, Memory, Storage and Flow Operations. Memory-> purple, storage-> grey, flow -> white, stack -> pink
+     - Push/Duplication/Pop/Exchange Operations.duplicate->dark pink. swap-> dark orange
+     - Logging Operations.dark red/brown
+     - System Operations system ops -> light purple
 
     and thus we will colour accordingly.
     Colours are defined in ./config/generate_graph_config

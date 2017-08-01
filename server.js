@@ -208,7 +208,7 @@ app.get('/api/sigmamult', function(req, res) {
                       return col.find({block_num : block_num}).toArray()
                           .then(function(items) {
                             if(items.length){
-                              var multiobj={
+                              var multiobj={//object to store coagulated results
                                 nodes:[],
                                 edges:[]
                               };
