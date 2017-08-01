@@ -18,6 +18,13 @@ app.set('view engine','ejs')
 app.use(express.static(__dirname+'/public'));
 app.use(bodyParser.json())
 
+
+app.get("/",function(req,res){
+  res.render("homepage.ejs")
+})
+
+
+
 // uses vis.js library
 app.get('/api/vis', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
@@ -194,109 +201,170 @@ app.get('/api/sigmamult', function(req, res) {
   console.log("-----------NEW BROWSER REQUEST FOR SIGMAJS MULT VIZ-------------")
   console.log("received block_num:" + block_num +" ,num_block:" + num_block);
 
-  /*
-  Search for block in database. If it is not there then generate the blocks
-  */
   var upper_block_limit = parseInt(block_num) + parseInt(num_block);
-
-  var response_sigma =[]; //making array of objects
-  for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
+  var reqBlockArray=[];//array of strings for storing requested block numbers
+  for(var b = parseInt(block_num); b < upper_block_limit; b++){
+      reqBlockArray.push(b.toString())
+  }
+  console.log("reqBlockArray lenght is :"+reqBlockArray.length)
     mp.MongoClient.connect(url)
       .then(function(db){
               return db.collection('test')
                   .then(function(col) {
-                      return col.find({block_num : block_num}).toArray()
+                      return col.find({block_num : {$in: reqBlockArray}}).toArray()
                           .then(function(items) {
-                            if(items.length){
-                              var multiobj={//object to store coagulated results
-                                nodes:[],
-                                edges:[]
-                              };
-                              console.log("found "+items.length+" items for this block in DB!")
-                              for(i=0;i<items.length;i++){
-                                if(items[i].sigmaobj!=null){
-                                  var r_sigma = items[i].sigmaobj; // no toString needed since this is an object
-                                  //for first block just copy over each object
-                                  if(i==0){
-                                    for(var i_nodes=0;i_nodes<r_sigma.nodes.length;i_nodes++){
-                                      var tempnodeobj=r_sigma.nodes[i_nodes];
-                                      multiobj.nodes.push(tempnodeobj);
-                                    }
-                                    for(var i_edges=0;i_edges<r_sigma.edges.length;i_edges++){
-                                      var tempnodeobj=r_sigma.edges[i_edges];
-                                      multiobj.edges.push(tempnodeobj);
-                                    }
-                                  }
-                                  //if second, third fourth,... need to add offset index to each
-                                  if(i>0){
-                                    //add length to nodes
-                                    var additional_length_node=0; //this is the offset
-                                    for(var ii=0;ii<i;ii++){
-                                    //  console.log("=items[ii].sigmaobj.nodes.length" +items[ii].sigmaobj.nodes.length)
-                                      additional_length_node+=items[ii].sigmaobj.nodes.length; // add up all the lenghts of previous and add on. note index i
-                                    }
-                                    //console.log("additional_length_node on i: "+i+" is "+additional_length_node);
-                                    for(var iii=0; iii<r_sigma.nodes.length;iii++){
-                                      var newnodeid= parseInt(r_sigma.nodes[iii].id) +additional_length_node;
-                                      //r_sigma.nodes[iii].id = newnodeid.toString();
-                                      //now push to first object
-                                      var oldx = r_sigma.nodes[iii].x;
-                                      var oldy = r_sigma.nodes[iii].y;
-                                      var oldlabel = r_sigma.nodes[iii].label;
-                                      //set colour of each contract differently
-                                      var oldcolor=r_sigma.nodes[iii].color;
-                                      var oldsize = r_sigma.nodes[iii].size;
-                                      multiobj.nodes.push({id: (newnodeid.toString()), x:oldx, y:oldy,label:oldlabel,color:oldcolor,size:oldsize});
-                                    }
-                                    //now add to each edge additional_length_node and then push to first object
-                                    for(var iiii=0;iiii<r_sigma.edges.length;iiii++){
-                                      var newsource = parseInt(r_sigma.edges[iiii].source)+additional_length_node;
-                                      var newtarget = parseInt(r_sigma.edges[iiii].target)+ additional_length_node;
-                                      var newid = (r_sigma.edges[iiii].id).concat("_",i.toString())
-                                      if(i==1){
-                                        var edgecolour = "rgb(191,65,65)";//red?
-                                      }
-                                      else if(i==2){
-                                        var edgecolour = "rgb(191,182,65)";//gold colour
-                                      }
-                                      else{
-                                        var edgecolour = "rgb(50,50,30)";
-                                      }
-                                      multiobj.edges.push({id: newid.toString(),source:newsource.toString(),target:newtarget.toString(),color:edgecolour});
-                                    }
-                                  }
-                                }
-                              }
-                            db.close()
-                            .then(function(){
-                              console.log("yurt - this is a promise .then")
-                              // console.log(JSON.stringify(response_sigma));
-                            })
-                            .then(function (){
-                                console.log("rendering screen ejs")
-                                res.render("sigmamulti.ejs",{
-                                  block_num:block_num,
-                                  num_block:num_block,
-                                  sigmaobj_multi:multiobj // this is the object that was being built above!
+                            console.log("found "+items.length+" items for this block in DB!")
+
+                            if(items.length<reqBlockArray.length){
+                              console.log("but need "+reqBlockArray.length + "blocks")
+                              var foundBlocksInDB = [];//to store what is found in db
+                              items.forEach(function(block){
+                                  foundBlocksInDB.push(block);
+                              })
+                              db.close().then(sigmaMultiCallback(foundBlocksInDB,reqBlockArray))
+                              .then(function (){
+                                  res.send("refresh page shortly")
                                 });
-                            });
+                            }//if items present
+                            //else if we found enough items in the db
+                            else if (items.length>= reqBlockArray.length) {
+                              console.log("found sufficient items, gonna coagulate now..")
+                              var multiobj = generateSigmaCombinedObject(items)
+                              res.render("sigmamulti.ejs",{
+                                num_block:num_block,
+                                block_num:block_num,
+                                sigmaobj_multi:multiobj
+                              })
                             }
+                            //else items ==null then go away and find each block
                             else{
                               console.log("found nothing in DB so adding block no. "+block_num +" to db ");
-                              //add the specified graphs to the database
-                              add_blocks_graph_to_db(block_num,1);// 1 is blank does nt matter what
+                              reqBlockArray.forEach(function(blockn){
+                                add_blocks_graph_to_db(blockn,1);// 1 is blank does nt matter what
+                              })
                             }
-
                           })
-
               })
   })
   .fail(function(err) {console.log(err)});
-  }
+
 
 });//end of express route
 
+var sigmaMultiCallback = function(foundDB, reqBlockArray){
+  var found_block_list=[];
+  foundDB.forEach(function(block){//get transactions number from each object found
+    found_block_list.push(block.block_num);
+  })
+  Array.prototype.diff = function(a){
+    return this.filter(function(i){
+      return a.indexOf(i)<0;
+    });
+  };
+  var needToFindTrans=reqBlockArray.diff(found_block_list) //need.diff(haveindb)
+  console.log("need to find:" + needToFindTrans)
+  needToFindTrans.forEach(function(block){
+    add_blocks_graph_to_db(block,1);
+  })
+}
 
+
+function generateSigmaCombinedObject(items){
+  console.log("generateSigmaCombinedObject called!")
+  var multiobj={//object to store coagulated results
+    nodes:[],
+    edges:[]
+  };
+  //DEBUGGING
+  items.forEach(function(item){
+    console.log("item lenght is "+item.sigmaobj.nodes.length)
+  })
+  //NOTE some ID's are missing since JUMPDEST is missing. must take different approach to lenght
+  // to avoid conflict on naming id's
+  console.log("finding real id lengths")
+  var realLenghtOfNodes=[];
+  // items.forEach(function(item,indexl){
+    for(var indexl=0;indexl<items.length;indexl++){
+      var r_sigma = items[indexl].sigmaobj;
+      if(r_sigma!=null){
+        console.log("finding real length "+indexl)
+        for(var findl=0;findl<r_sigma.nodes.length;findl++){
+          var tempnodeobj=parseInt(r_sigma.nodes[findl].id);
+          if(tempnodeobj>realLenghtOfNodes[indexl]){
+            console.log("highest is now: "+tempnodeobj)
+            realLenghtOfNodes[indexl]=tempnodeobj;
+          }
+        }
+      }
+    }
+  // })
+  console.log("realLenghtOfNodes is :"+realLenghtOfNodes)
+
+
+  for(var i=0;i<items.length;i++){
+    //find max value in each r_sigma
+
+    if(items[i].sigmaobj!=null){
+      var r_sigma = items[i].sigmaobj; // no toString needed since this is an object
+      //for first block just copy over each object
+      if(i==0){
+        for(var i_nodes=0;i_nodes<r_sigma.nodes.length;i_nodes++){
+
+          console.log("i is 1 and id is: "+tempnodeobj.id)//debugging
+          multiobj.nodes.push(tempnodeobj); // push to combined results object
+          //find the greatest id seen in i=0
+        }
+        for(var i_edges=0;i_edges<r_sigma.edges.length;i_edges++){
+          var tempnodeobj=r_sigma.edges[i_edges];
+          multiobj.edges.push(tempnodeobj);
+        }
+      }
+      //if second, third fourth,... need to add offset index to each
+      if(i>0){
+        //add length to nodes
+        var additional_length_node=0; //this is the offset
+        for(var ii=0;ii<=i;ii++){ // for the remaining items found in the db
+        //  console.log("=items[ii].sigmaobj.nodes.length" +items[ii].sigmaobj.nodes.length)
+          additional_length_node+=items[ii].sigmaobj.nodes.length; // add up all the lenghts of previous and add on. note index i
+        }
+        console.log("additional_length_node on i: "+i+" is "+additional_length_node);
+        for(var iii=0; iii<r_sigma.nodes.length;iii++){
+          var newnodeid= parseInt(r_sigma.nodes[iii].id) +additional_length_node;
+          //r_sigma.nodes[iii].id = newnodeid.toString();
+          console.log("newnodeid is "+ newnodeid)
+          //now push to first object
+          var oldx = r_sigma.nodes[iii].x;
+          var oldy = r_sigma.nodes[iii].y;
+          var oldlabel = r_sigma.nodes[iii].label;
+          //set colour of each contract differently
+          var oldcolor=r_sigma.nodes[iii].color;
+          var oldsize = r_sigma.nodes[iii].size;
+
+
+
+          multiobj.nodes.push({id: (newnodeid.toString()), x:oldx, y:oldy,label:oldlabel,color:oldcolor,size:oldsize});
+        }
+        //now add to each edge additional_length_node and then push to first object
+        for(var iiii=0;iiii<r_sigma.edges.length;iiii++){
+          var newsource = parseInt(r_sigma.edges[iiii].source)+additional_length_node;
+          var newtarget = parseInt(r_sigma.edges[iiii].target)+ additional_length_node;
+          var newid = (r_sigma.edges[iiii].id).concat("_",i.toString())
+          if(i==1){
+            var edgecolour = "rgb(191,65,65)";//red?
+          }
+          else if(i==2){
+            var edgecolour = "rgb(191,182,65)";//gold colour
+          }
+          else{
+            var edgecolour = "rgb(50,50,30)";//default colour
+          }
+          multiobj.edges.push({id: newid.toString(),source:newsource.toString(),target:newtarget.toString(),color:edgecolour});
+        }
+      }
+    }
+  }
+  return multiobj;
+}
 
 function add_blocks_graph_to_db(block_num,num_block){
   graph_gen.gen_graph_promise(block_num,num_block).then(function(res){
