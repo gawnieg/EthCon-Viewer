@@ -9,7 +9,15 @@ const transfinder = require("./all_trans_per_contract.js")
 const graph_gen_for_contract = require("./generate_graph_for_contract.js")
 const rp = require("request-promise")
 const bodyParser = require("body-parser")
+var Web3 = require('web3');
+var web3 = new Web3();
 
+try{
+  web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));
+}
+catch(err){
+console.log("Chucking error" +err);
+}
 //var url = "mongodb://localhost:27017/test?socketTimeoutMS=90000";
 var url = "mongodb://localhost:27017/test";
 
