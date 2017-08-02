@@ -38,7 +38,7 @@ function web3call(int_trans, contracts_trans_list){
   console.log("web3call")
   web3.currentProvider.sendAsync({
       method: "debug_traceTransaction",
-      params: [contracts_trans_list[int_trans],{}], // change this line for an individual contract viz
+      params: [contracts_trans_list[int_trans],{disableStorage: true, disableMemory:true}], // change this line for an individual contract viz
       jsonrpc: "2.0",
       id:"2"},
       function(err,result){
