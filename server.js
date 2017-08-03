@@ -25,7 +25,7 @@ app.use(bodyParser.json())
 var connectionURL ="http://localhost:8545"; //default
 process.argv.forEach(function (val, index, array) {
   if(index ==2 ){
-    connectionURL="http://"+val.toString()+":8545";
+    connectionURL="http://"+val.toString();
   }
 });
 console.log("Geth connection is "+connectionURL)
