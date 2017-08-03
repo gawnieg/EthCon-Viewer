@@ -12,12 +12,21 @@ const fs = require("fs")
 
 Web3 = require("web3");
 var web3 = new Web3();
-web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));
-
 
 module.exports={
   gen_graph_promise: function(_passed_trans_list,displayGraphs){ // NOTE this is expecting an array!!!
     return gen_graph_prom(_passed_trans_list,displayGraphs);
+  },
+  setGethURL: function(input){
+    gethURL=input;
+    establishGethConnection(gethURL)
+  }
+}
+function establishGethConnection(gethURL){
+  console.log("connecting to geth with "+gethURL);
+  web3.setProvider(new web3.providers.HttpProvider(gethURL));
+  if(web3.isConnected()){
+    console.log("connection successful")
   }
 }
 

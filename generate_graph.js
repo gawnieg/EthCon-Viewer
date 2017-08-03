@@ -29,7 +29,6 @@ const mod_json = require("./modify_json_depth.js")// for different stack depths
 
 Web3 = require("web3");
 var web3 = new Web3();
-web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));
 
 module.exports={
   generate_graph_for_blocks: function(_passed_num_blocks, _passed_block_num){
@@ -40,6 +39,17 @@ module.exports={
   },
   getTransHash: function(_block, _pos){
     return getTransID(_block, _pos);
+  },
+  setGethURL: function(input){
+    gethURL=input;
+    establishGethConnection(gethURL)
+  }
+}
+function establishGethConnection(gethURL){
+  console.log("connecting to geth with "+gethURL);
+  web3.setProvider(new web3.providers.HttpProvider(gethURL));
+  if(web3.isConnected()){
+    console.log("connection successful")
   }
 }
 

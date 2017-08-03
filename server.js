@@ -12,12 +12,7 @@ const bodyParser = require("body-parser")
 var Web3 = require('web3');
 var web3 = new Web3();
 
-try{
-  web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));
-}
-catch(err){
-console.log("Chucking error" +err);
-}
+
 //var url = "mongodb://localhost:27017/test?socketTimeoutMS=90000";
 var url = "mongodb://localhost:27017/test";
 
@@ -25,7 +20,29 @@ app.set('view engine','ejs')
 //app.use(express.static('src'))
 app.use(express.static(__dirname+'/public'));
 app.use(bodyParser.json())
+//reading in from commandline
 
+var connectionURL ="http://localhost:8545"; //default
+process.argv.forEach(function (val, index, array) {
+  if(index ==2 ){
+    connectionURL="http://"+val.toString()+":8545";
+  }
+});
+console.log("Geth connection is "+connectionURL)
+try{
+  web3.setProvider(new web3.providers.HttpProvider(connectionURL));
+  if(!web3.isConnected()){
+    console.log("Cannot connect to Geth at provided URL");
+    process.exit()
+  }
+  else{//now connect other instances required
+    graph_gen.setGethURL(connectionURL);
+    graph_gen_for_contract.setGethURL(connectionURL);
+  }
+}
+catch(err){
+  console.log("Chucking error for connecting to Geth" +err);
+}
 
 app.get("/",function(req,res){
   res.render("homepage.ejs")
