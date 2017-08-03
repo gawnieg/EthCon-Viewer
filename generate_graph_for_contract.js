@@ -44,7 +44,7 @@ var gen_graph_prom = function(passed_trans_list,displayGraphs){
 }
 
 function web3call(int_trans, contracts_trans_list){
-  console.log("web3call")
+  console.log("web3call for "+contracts_trans_list[int_trans])
   web3.currentProvider.sendAsync({
       method: "debug_traceTransaction",
       params: [contracts_trans_list[int_trans],{disableStorage: true, disableMemory:true}], // change this line for an individual contract viz
@@ -111,6 +111,14 @@ function web3call(int_trans, contracts_trans_list){
           for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
 
             var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist); //seperate function to loop throuhg and generate formats
+            //FOR DEBUGGIN!!!
+            var lengthOfNodes = format.sigmaobj.nodes.length;//for debugging
+            var lengthOfColours = format.graphtools_color.length;
+            var lengthOfLabels = format.graphtools_label.length;
+            console.log("lengthOfNodes "+lengthOfNodes);
+            console.log("lengthOfColours "+lengthOfColours);
+            console.log("lengthOfLabels "+lengthOfLabels)
+
             var res_str = format.res_str;
             var res_str_gml=format.res_str_gml;
             var res_str_dot_no_lbl=format.res_str_dot_no_lbl;
@@ -251,6 +259,7 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
     }
     //now send this dot file path to the python module which will make the graph
     console.log("now writing to python module!"+py.pid)
+    console.log("nodejs colorarray length for debuging "+ graphtools_color.length)
     py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
     py.stdin.write("\n")
     py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
@@ -281,6 +290,15 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
     });//end file stat
     py.stdout.end();
   }); // on python 'finish'
+
+  py.on('exit', function (code, signal) { //which process? add pid ?
+
+  console.log('child process '+py.pid +' exited with ' +
+              `code ${code} and signal ${signal}`);
+  });
+
+
+
 }
 
 function getIndex(i){return function(){return i}} //provided for closure, to bind variable to loop

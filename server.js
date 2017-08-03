@@ -660,7 +660,10 @@ app.get("/contract",function(req,res){
         etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
           contractTransList.push(trans.hash)
         })
-        console.log("contractTransList is "+contractTransList)
+        console.log("contractTransList is :")
+        contractTransList.forEach(function(each){
+          console.log(each)
+        })
         find_in_db(contractTransList,callback,res);
       }
       else{
@@ -691,7 +694,11 @@ var callback = function(contractTransList,found_trans,res){
   };
   var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
   if(needToFindTrans.length){ //if there are ones that need to be generated
-    console.log("Callback: need to carry out graph gen for these: " +needToFindTrans);
+    console.log("Callback: need to carry out graph gen for these: ");
+    //printing nicely
+    needToFindTrans.forEach(function(each){
+      console.log(each)
+    })
     graph_gen_for_contract.gen_graph_promise(needToFindTrans)
   }
   //if all the pictures are in the db
@@ -702,7 +709,10 @@ var callback = function(contractTransList,found_trans,res){
       picsToView.push(index.randomHash);
     })
     //now render to screen
-    console.log("picsToView: "+picsToView)
+    console.log("picsToView: ")
+    picsToView.forEach(function(each){
+      console.log(each)
+    })
     res.render("contractView.ejs",{
       picsToView:picsToView
     });
