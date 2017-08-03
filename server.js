@@ -379,7 +379,7 @@ function add_blocks_graph_to_db(block_num,num_block){
   })
 }
 
-app.get("/api/graphtools",function(req,res){ // route for graphtools static file, python library
+app.get("/api/graphtools",function(req,res){ // route for graphtools static file generation and display using python graph tools library
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
   var graph_tools_array=[];//to store results from database
