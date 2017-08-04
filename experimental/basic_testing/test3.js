@@ -2,7 +2,7 @@ const rp = require("request-promise")
 console.log("yurt")
 const options = {
   method: 'GET',
-  uri: 'http://api.etherscan.io/api',
+  uri: 'http://ropsten.etherscan.io/api',
   qs:{
     module:"account",
     action:"txlist",

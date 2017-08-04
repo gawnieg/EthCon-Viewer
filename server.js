@@ -9,13 +9,15 @@ const transfinder = require("./all_trans_per_contract.js")
 const graph_gen_for_contract = require("./generate_graph_for_contract.js")
 const rp = require("request-promise")
 const bodyParser = require("body-parser")
+const async = require('async');
+const request = require('request');
 var Web3 = require('web3');
 var web3 = new Web3();
 
 
 //var url = "mongodb://localhost:27017/test?socketTimeoutMS=90000";
 var url = "mongodb://localhost:27017/test";
-
+var testORmain = ""; //to indicate if it is testnet or main net
 app.set('view engine','ejs')
 //app.use(express.static('src'))
 app.use(express.static(__dirname+'/public'));
@@ -26,6 +28,9 @@ var connectionURL ="http://localhost:8545"; //default
 process.argv.forEach(function (val, index, array) {
   if(index ==2 ){
     connectionURL="http://"+val.toString();
+  }
+  if(index==3){
+    testORmain=val.toString();
   }
 });
 console.log("Geth connection is "+connectionURL)
@@ -634,9 +639,17 @@ app.get("/contract",function(req,res){
   var _endBlock = parseInt(req.query.end);
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
   // var contractTransList = transfinder.getTransactionsByAccount(viewContract.toString(),startBlock,endBlock)
+  if(testORmain=="test"){
+    var etherscanAPIURL = "http://ropsten.etherscan.io/api"
+  }
+  else{
+    var etherscanAPIURL = 'http://api.etherscan.io/api';
+  }
+  console.log("etherscanAPIURL is "+etherscanAPIURL);
+
   const options = {
     method: 'GET',
-    uri: 'http://api.etherscan.io/api',
+    uri: etherscanAPIURL,
     qs:{
       module:"account",
       action:"txlist",
@@ -644,7 +657,7 @@ app.get("/contract",function(req,res){
       startblock:_startBlock,
       endblock:_endBlock,
       sort:"asc",
-      apikey:"W3ME1J7QWZZS6E82TM8YAZCGN48V2V893"
+      apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5"
     },
     json: true
   }
@@ -744,6 +757,7 @@ function find_in_db(contractTransList,callback,res){
 
 app.get("/checktrans",function(req,res){
   var transaction = req.query.transaction;
+  transaction=transaction.toString()
   console.log("#################\nThe sanity checker has been called for the transaction: \n ########################\n"+transaction)
   checkTrans(transaction).then(function (result) {
     console.log("rendering"+result)
@@ -776,9 +790,68 @@ var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/qu
       );
   })
 }
+//###################################################################
+//NEW ROUTE!!
+//###################################################################
+app.get("/getmultiblock",function(req,res){
+  var startblock = req.query.startblock;
+  var endblock = req.query.endblock;
+  console.log("====================\n getmultiblock has been called for \n========================")
+  //Find transaction in all of these blocks
+  var block_list =[];
+  //make list of blocks for which to get the transactions hashes
+  for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
+    block_list.push(b);
+  }
+  var urls=constructURLs(block_list);
+
+  //for request
+  function httpGet(url, callback) {
+    const options = {
+      url :  url,
+      json : true
+    };
+    request(options,
+      function(err, res, body) {
+        console.log("calling callback")
+        callback(err, body);
+      }
+    );
+  }
 
 
+  function constructURLs(block_list){ // function that builds the etherscan lookup urls from the blocknumbers passed
+    var urls =[];
+    block_list.forEach(function(bn){
+      var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
+      console.log("pushing "+eachURL)
+      urls.push(eachURL);
+    })
+    return urls;
+  }
 
+
+  var transHashList=[];
+
+  async.map(urls, httpGet, function (err, res){
+    if (err) return console.log(err);
+    for(var index=0; index<res.length;index++){
+      //now exract data of each
+      var data_array = res[index].data;
+      for(var dataIndex=0; dataIndex<data_array.length;dataIndex++){
+        transHashList.push(data_array[dataIndex].hash.toString());
+      }
+    }
+    console.log("got http requests")
+    console.log("transHashList is :");
+    transHashList.forEach(function(each){
+      console.log(each)
+    })
+    console.log("now continuing doing something else")
+    find_in_db(transHashList,callback,res);
+
+  });
+});//end of route
 
 
 app.listen(3005, function () {

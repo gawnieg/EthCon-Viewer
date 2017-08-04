@@ -15,9 +15,9 @@ function httpGet(url, callback) {
 }
 
 const urls= [
-  "https://etherchain.org/api/block/4000000/tx",
-  "https://etherchain.org/api/block/4000001/tx",
-  "https://etherchain.org/api/block/4000002/tx"
+  "https://etherchain.org/api/block/3400004/tx",
+  "https://etherchain.org/api/block/3400005/tx",
+  "https://etherchain.org/api/block/3400006/tx"
 ];
 
 var transHashList=[];

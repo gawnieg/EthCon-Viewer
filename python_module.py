@@ -23,7 +23,7 @@ def main():
     # print("python colorarray", fromstdin[1])
 
     colorarray = fromstdin[1]
-    # print("python: printing colorarray")
+
     # print(colorarray)
     labelarray = fromstdin[2]
     namingarray =fromstdin[3]
@@ -64,9 +64,8 @@ def main():
                 g=load_graph(filename,"dot")#this should be the dot file contents but now we will just pass the file address
                 # section setting labels!
                 print("python: loaded graph from "+filename)
-                print("yurt")
             except:
-                print("error loading graph")
+                print("python: error loading graph")
             # print("python: colorarray"+colorarray)
             # print("python: length of colorarray is "+colorarray.len)
             #print("python: length of labelarray is "+labelarray.len)
@@ -75,17 +74,16 @@ def main():
                 v_prop2 = g.new_vertex_property("string") #for colour
                 #assigning colours to each vertex in loop
                 for vertex in g.vertices():
-                    print("setting labelarray element for node "+ii+" -> "labelarray[ii])
+                    # print("setting labelarray element for node "+ii+" -> "labelarray[ii])
                     v_prop[vertex]=labelarray[ii]
-                    print("setting colorarray element for node "+ii+" -> "colorarray[ii])
+                    # print("setting colorarray element for node "+ii+" -> "colorarray[ii])
                     v_prop2[vertex]=colorarray[ii]
                     ii=ii+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
             except:
-                print("error defining vertices!!")
+                print("python: error defining vertices!!")
             #now actually draw graph and save to folderout
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
-            print("python: attempting to draw graph")
             graph_draw(g, vertex_fill_color=v_prop2, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
             #new section to update mongo to say that the graph has been generated
             data =[{"randomHash":str(filename)}]

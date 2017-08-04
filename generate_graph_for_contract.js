@@ -44,7 +44,7 @@ var gen_graph_prom = function(passed_trans_list,displayGraphs){
   });
 }
 
-function web3call(int_trans, contracts_trans_list){
+function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to this interation thanks to closure
   console.log("web3call for "+contracts_trans_list[int_trans])
   web3.currentProvider.sendAsync({
       method: "debug_traceTransaction",
@@ -52,7 +52,9 @@ function web3call(int_trans, contracts_trans_list){
       jsonrpc: "2.0",
       id:"2"},
       function(err,result){
-        if(result.result!=undefined){
+        if(result.result!=undefined && result.result.structLogs.length>0){
+          console.log("Was able to get debug.traceTransaction!")
+          // console.log(JSON.stringify(result.result))
           /*
           1. sort into an array with the appropraite depths
           2. trace and modify json to create json that includes instructions for graph format generator
@@ -136,6 +138,7 @@ function web3call(int_trans, contracts_trans_list){
             console.log("trace found and graph made ...now going to make graph tools pic")
             var dotfilepath=randomstring.generate(7);// for some reason phython is requiring that it be in the same directory
             dotfilepath=dotfilepath.concat(".dot");
+            console.log("dotfilepath: "+dotfilepath)
             //save to db
             db2.save_trans_to_db(contracts_trans_list[int_trans],
               res_str,res_str_gml,
@@ -254,6 +257,7 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
       py    = spawn('python', ['python_module.py']);
   // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
   //write file to disk temporaily.
+  console.log("dotfilepath is "+dotfilepath)
   fs.writeFile(dotfilepath,allGraphsPerTrans, function(err){ //must create a file first //2nd param was res_str_dot_no_lbl
     if(err){
       console.log("there was an error writing to file" + err);
