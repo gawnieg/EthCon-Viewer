@@ -10,7 +10,7 @@ const db2 = require("./database2.js");//second database with promises
 const mod_json = require("./modify_json_depth.js")// for different stack depths
 const fs = require("fs")
 
-Web3 = require("web3");
+var Web3 = require("web3");
 var web3 = new Web3();
 
 module.exports={
@@ -18,6 +18,7 @@ module.exports={
     return gen_graph_prom(_passed_trans_list,displayGraphs);
   },
   setGethURL: function(input){
+    console.log(input)
     gethURL=input;
     establishGethConnection(gethURL)
   }

@@ -54,7 +54,7 @@ function establishGethConnection(gethURL){
 }
 
 var trans_list_counter=0;
-
+function getIndex(i){return function(){return i}} //provided for closure, to bind variable to loop
 
 var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
   return new Promise(function(resolve,reject){

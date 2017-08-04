@@ -75,12 +75,14 @@ def main():
                 v_prop2 = g.new_vertex_property("string") #for colour
                 #assigning colours to each vertex in loop
                 for vertex in g.vertices():
+                    print("setting labelarray element for node "+ii+" -> "labelarray[ii])
                     v_prop[vertex]=labelarray[ii]
+                    print("setting colorarray element for node "+ii+" -> "colorarray[ii])
                     v_prop2[vertex]=colorarray[ii]
                     ii=ii+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
             except:
-                print("here is the problem!!")
+                print("error defining vertices!!")
             #now actually draw graph and save to folderout
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
             print("python: attempting to draw graph")

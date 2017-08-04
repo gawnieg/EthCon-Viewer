@@ -458,7 +458,7 @@ function find_add_remove_nums(opcode){
   return r;
 }
 
-function modify_structLogs(sLogs){
+function modify_structLogs(sLogs){//slogs is the whole of structLogs
   var output=[];
   var step_number=0;
   var stack_origins=[];
@@ -466,24 +466,29 @@ function modify_structLogs(sLogs){
 
   for(var i=0; i<length;i++ ){
     // console.log("--------------NEXT STEP--------------"+i)
-    output.push(sLogs[i]);
-      sLogs[i].step=step_number;
+    output.push(sLogs[i]); //only place it is pushed to
+      sLogs[i].step=step_number; //could use i instead?
       step_number+=1;
-      c_r = find_add_remove_nums((sLogs[i].op));
+      c_r = find_add_remove_nums((sLogs[i].op)); //c_r contains the number of things to be removed from stack (c), and the numer to be added (p)(=1)
       c =c_r.c;
+      //setting colours for graphs
       var colour = c_r.colour;
       var hexcolour = c_r.hexcolour;
       sLogs[i].colour = colour;
       sLogs[i].hexcolour= hexcolour;
 
       var length_stack_origin= stack_origins.length;
+      //set arg_origins for this step as the items that were consumed from the stack,
+      //for c=3, the last three things on the stack_origin, for example if stack_origin was [a,b,c,d,e], then arg_origins = [c,d,e]
       sLogs[i].arg_origins=stack_origins.slice((length_stack_origin-c),length_stack_origin);
-      var length_arg_origin= sLogs[i].arg_origins.length;
-
+      var length_arg_origin= sLogs[i].arg_origins.length;//get the lenght of this, should be equal to c?
+      //for each of the arg_origins, set a value from the EVM actual stack corresponding to the position of this in the arg_origins
+      // for example if EVM stack = [1,2,3,4,5], we now have arg_origins: [c.value=3, d.value = 4, e.value = 5]
       for(var idx=0; idx< length_arg_origin; idx++){
-        v=sLogs[i].stack[(length_stack_origin-c+idx)]; //changed, was using slice for some reason
+        v=sLogs[i].stack[(length_stack_origin-c+idx)];
         sLogs[i].arg_origins[idx].value=v;
       }
+      //update stack_origins
       stack_origins=update_stack_origins(stack_origins,sLogs[i]);
   }
   return output;
@@ -491,8 +496,10 @@ function modify_structLogs(sLogs){
 
 function update_stack_origins(orig,sLog){
   var opcode=sLog.op;
-
-  switch(opcode){
+  //special case if SWAP or DUP as do not produce or consume
+  switch(opcode){ //swap does the following:[a,b,c,d] SWAP2 -> [a,d,c,b]
+    //dup duplicates: [a,b,c,d] DUP2 -> [a,b,c,d,a,b], OR [a,b,c,d] DUP3 [a,b,c,d,a,b,c]
+    //DUP  orig.concat(orig[(orig.length-number)]);
     case "SWAP0":
     return update_stack_origins_swap(orig,0);
     case "SWAP1":
@@ -570,16 +577,18 @@ function update_stack_origins(orig,sLog){
 
   c = (find_add_remove_nums(opcode)).c;
   p = (find_add_remove_nums(opcode)).p;
+
   orig_length= orig.length;
-  orig=orig.slice(0,(orig_length-c));
-  var here = origin(1,sLog.step);
+  orig=orig.slice(0,(orig_length-c));//now only consider from start to (end-consumed) [a,b,c,d,e,] and c =3, -> [a,b,c]
+  var here = origin(1,sLog.step);//returns obj r ={depth: 1, step: <sLogStep>}
   if(p==1){ //only one thing was created to the stack, put this into an array by itself
-    var new_elements= new Array(here);
+    var new_elements= new Array(here); // = [{depth: 1, step: <sLogStep>}]
   }
   if(p==0){//nothing new was created
     var new_elements = [];
   }
-  orig = orig.concat(new_elements);
+  orig = orig.concat(new_elements); //what stack_origin was concated with either: [] or [{depth: 1, step: <sLogStep>}]
+  //this will then go on to have its value set in the idx loop in modify_structLogs in the next step or pc. 
   return orig;
 
 }
@@ -588,6 +597,16 @@ function origin(d,s){
   return r;
 }
 function update_stack_origins_swap(orig,number){
+  /*
+    say orig = [a,b,c,d,e] and number =2
+    x1 = [a,b,c]
+    x2 = [d]
+    x3 = [d,e]  //slice((5-3+1),(5-1))=slice(3,4)
+    x4=[c]
+    x5= [a,b,c,d]
+    x6=[d,e,c]
+    x7= [a,b,c,d,d,e,c]
+  */
   number=number+1;
   var x1=orig.slice(0,(orig.length-number));
   // console.log("update_stack_origins_swap x1 is "+JSON.stringify(x1))
