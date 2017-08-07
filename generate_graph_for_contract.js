@@ -164,6 +164,24 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
 
 
 function sortDepth(orig_steps){
+  /*
+    needs_new_mem=[1,2,3,4,5,6,....]
+    mem_index=1
+    forEach step in structLogs
+      currentDepth = structLogs[step].depth
+      previousDepth = structLogs[step-1].depth
+      if(currentDepth-previousDepth==1)
+        needs_new_mem[currentDepth]=mem_index
+        structLogs[index]graphArray=mem_index
+        mem_index++
+      elseif(previousDepth-currentDepth==1)
+        structLogs[index].graphArray=mem_index
+      else:
+        structLogs[index].graphArray=structLogs[index-1].graphArray
+
+
+
+  */
   var TwoDarrayWithDepths = Create2DArray(2000);
   //making the array with a loop [1,2,3,4,5 ....2000]
   // array to store what memory array the depth level needs to be stored at
@@ -172,6 +190,7 @@ function sortDepth(orig_steps){
     needs_new_mem.push(newarray_i+1);
   }
   var mem_index=1; //variable to hold global array index for depth tracker
+
   for(var index=0;index<orig_steps.length;index++){
     var currentDepth=orig_steps[index].depth;
     if(currentDepth==1 && orig_steps[index].pc ==0){ // for the very first step, need this as the rest work off the basis of difference between depths
@@ -257,6 +276,10 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
       py    = spawn('python', ['python_module.py']);
   // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
   //write file to disk temporaily.
+
+  //NOTE try to change to py.on("connected",function(){}) to ensure process is up and running before we start doing py.stdin.write...
+
+
   console.log("dotfilepath is "+dotfilepath)
   fs.writeFile(dotfilepath,allGraphsPerTrans, function(err){ //must create a file first //2nd param was res_str_dot_no_lbl
     if(err){
@@ -265,15 +288,17 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
     //now send this dot file path to the python module which will make the graph
     console.log("now writing to python module!"+py.pid)
     console.log("nodejs colorarray length for debuging "+ graphtools_color.length)
-    py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
-    py.stdin.write("\n")
-    py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
-    py.stdin.write("\n")
-    py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
-    py.stdin.write("\n");
-    py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
-    py.stdin.write("\n");
-    py.stdin.end();
+    // py.on("connected",function(){
+      py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
+      py.stdin.write("\n")
+      py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
+      py.stdin.write("\n")
+      py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
+      py.stdin.write("\n");
+      py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
+      py.stdin.write("\n");
+      py.stdin.end();
+    // })
   });
   var dataString=""; //variable to store return from python module
   py.stdout.on('data', function(data){ // listen for data coming back from python!

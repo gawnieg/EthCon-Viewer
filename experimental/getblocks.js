@@ -18,15 +18,22 @@ var newcall = function(err,result){
 //  console.log(result.result)
 }
 
+var block = web3.eth.getBlock(100000)
+console.log(block)
+
+
 var unrealres ="";
 unrealres= getdata();
 function getdata(){
   var daycentres = web3.currentProvider.sendAsync({
     method: "debug_traceTransaction",
-    params: ["0x47bcb1ffd783659ae7fee6f4530cb3f7cc95b93915ab8c4dae669fd9f3466695",{}],  //  see docs, was ->params: ['0x272d5cfed972a35437833802595d170cd6288f2f7393d1d57af1a5955ab1dabf',{}]
+    params: ["0xf2db493ef14736c8bd9604c4d7d4aa9bcb199897b9ae7fd823eb390dfd12b8ab",{}],  //  see docs, was ->params: ['0x272d5cfed972a35437833802595d170cd6288f2f7393d1d57af1a5955ab1dabf',{}]
     jsonrpc: "2.0",
     id:"2"},
       function(err,result){
+        if(err){
+          console.log(err)
+        }
         console.log(JSON.stringify(result.result))
       }
   );

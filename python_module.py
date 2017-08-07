@@ -4,7 +4,7 @@ con = pymongo.MongoClient()
 coll = con.trans.test #collection route
 from graph_tool.all import *
 
-
+# python module called from generate_graph_for_contract
 #Read data from stdin
 def read_in():
     store=[]
@@ -72,19 +72,42 @@ def main():
             try:
                 v_prop=g.new_vertex_property("string") #for label
                 v_prop2 = g.new_vertex_property("string") #for colour
+                vshape = g.new_vertex_property("string") # for first and last to have different shapes
                 #assigning colours to each vertex in loop
+
                 for vertex in g.vertices():
+                    if(ii==0):
+                        print("python: generating triangle to mark beginning node")
+                        vshape[vertex]="triangle"
+                        v_prop[vertex]=labelarray[ii]
+                        v_prop2[vertex]=colorarray[ii]
+                        ii=ii+1
+                        continue
                     # print("setting labelarray element for node "+ii+" -> "labelarray[ii])
                     v_prop[vertex]=labelarray[ii]
                     # print("setting colorarray element for node "+ii+" -> "colorarray[ii])
                     v_prop2[vertex]=colorarray[ii]
+                    vshape[vertex]="circle"
                     ii=ii+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
+                lastIndex =0 #variable to indicate when we have reached the end
+                for v in g.vertices():
+                    if(lastIndex==ii-1):#if it is equal to the last one, set to square
+                        vshape[v]="square"
+                        print("python: generating square to mark last node")
+                    lastIndex=lastIndex+1
             except:
                 print("python: error defining vertices!!")
             #now actually draw graph and save to folderout
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
-            graph_draw(g, vertex_fill_color=v_prop2, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
+            #pos = arf_layout(g,max_iter=1000)
+
+            try:
+                graph_draw(g, vertex_fill_color=v_prop2,vertex_shape=vshape, edge_color=edge_des_color, output=folderout) #vertex_text=v_prop, to show labels on nodes
+            except:
+                print("python: error drawing graph")
+
+
             #new section to update mongo to say that the graph has been generated
             data =[{"randomHash":str(filename)}]
             print("python: attempting to update "+str(filename))
