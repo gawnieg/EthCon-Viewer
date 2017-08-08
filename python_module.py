@@ -99,19 +99,36 @@ def main():
                 #now new section to generate dimensions for drawings
                 dimension_i=0
                 dimension_ii=0
-                min_dimension = 400
-                print("python: lastIndex will be "+str(lastIndex))
-                dimension_i = min(lastIndex,min_dimension) #set minimum external dimension
-                print("python: output_dim_test will be "+str(dimension_i))
+                # min_dimension = 400
+                # print("python: lastIndex will be "+str(lastIndex))
+                # dimension_i = min(lastIndex,min_dimension) #set minimum external dimension
+                # print("python: output_dim_test will be "+str(dimension_i))
+                #
+                # if(dimension_i == min_dimension): # if the dimension_i was really large...
+                #     dimension_ii = max(lastIndex,2500) #set maximum external dimension
+                # else:
+                #     dimension_ii = dimension_i
+                # print("python: output_size will be "+str(dimension_ii))
 
-                if(dimension_i == min_dimension):
-                    dimension_ii = max(lastIndex,2500) #set maximum external dimension
+                # try simpler mechanism
+                test0=2*lastIndex
+                test1= int(test0)
+                print("test1 is "+str(test1))
+                if(test1 > 2000):
+                    print("setting dimension_ii to 2000")
+                    dimension_ii=2000
+                elif(test1<100):
+                    dimension_ii=200
+                    print("setting dimension_ii to 200")
+                elif(test1<500):
+                    dimension_ii=300
+                    print("setting dimension_ii to 300")
                 else:
-                    dimension_ii = dimension_i
-                print("python: output_size will be "+str(dimension_ii))
-                #try simpler mechanism
-                # dimension_i= ceil(1.5*lastIndex);
-                # dimension_ii = min(dimension_i,2000)
+                    print("default dimension_ii = test1")
+                    dimension_ii=test1
+
+
+                print("python: setting dimension_ii as "+ str(dimension_ii))
 
             except:
                 print("python: error defining vertices!!")
