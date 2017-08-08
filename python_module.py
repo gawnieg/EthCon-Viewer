@@ -96,14 +96,30 @@ def main():
                         vshape[v]="square"
                         print("python: generating square to mark last node")
                     lastIndex=lastIndex+1
+                #now new section to generate dimensions for drawings
+                dimension_i=0
+                dimension_ii=0
+                min_dimension = 400
+                print("python: lastIndex will be "+str(lastIndex))
+                dimension_i = min(lastIndex,min_dimension) #set minimum external dimension
+                print("python: output_dim_test will be "+str(dimension_i))
+
+                if(dimension_i == min_dimension):
+                    dimension_ii = max(lastIndex,2500) #set maximum external dimension
+                else:
+                    dimension_ii = dimension_i
+                print("python: output_size will be "+str(dimension_ii))
+                #try simpler mechanism
+                # dimension_i= ceil(1.5*lastIndex);
+                # dimension_ii = min(dimension_i,2000)
+
             except:
                 print("python: error defining vertices!!")
             #now actually draw graph and save to folderout
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
-            #pos = arf_layout(g,max_iter=1000)
-
+            #pos = arf_layout(g,max_iter=1000) #output_size=(size_dim_1,size_dim_1)
             try:
-                graph_draw(g, vertex_fill_color=v_prop2,vertex_shape=vshape, edge_color=edge_des_color, output=folderout) #vertex_text=v_prop, to show labels on nodes
+                graph_draw(g, vertex_fill_color=v_prop2,vertex_shape=vshape, edge_color=edge_des_color,output_size=(dimension_ii,dimension_ii), output=folderout) #vertex_text=v_prop, to show labels on nodes
             except:
                 print("python: error drawing graph")
 
