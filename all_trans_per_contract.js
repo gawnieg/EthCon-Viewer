@@ -1,3 +1,5 @@
+//not used, is alternative to request look up to etherscan api but is too slow!
+
 Web3 = require("web3");
 var web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider('http://146.169.44.231:8545'));

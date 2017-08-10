@@ -631,7 +631,7 @@ app.get("/api/graphtools",function(req,res){ // route for graphtools static file
 
 
 
-app.get("/contract",function(req,res){
+app.get("/contract",function(req,res){ //per contract - working and good!
 
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
@@ -657,7 +657,7 @@ app.get("/contract",function(req,res){
       startblock:_startBlock,
       endblock:_endBlock,
       sort:"asc",
-      apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5"
+      apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
     },
     json: true
   }
