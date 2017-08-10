@@ -313,10 +313,10 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
       if (err) {
           return console.error(err);
       }
-      fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
-           if(err) return console.log(err);
-           console.log('file deleted successfully');
-      });//end unlink
+      // fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
+      //      if(err) return console.log(err);
+      //      console.log('file deleted successfully');
+      // });//end unlink
     });//end file stat
     py.stdout.end();
   }); // on python 'finish'

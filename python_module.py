@@ -24,7 +24,7 @@ def main():
 
     colorarray = fromstdin[1]
 
-    # print(colorarray)
+    print(colorarray)
     labelarray = fromstdin[2]
     namingarray =fromstdin[3]
     #then load file
@@ -75,27 +75,35 @@ def main():
                 vshape = g.new_vertex_property("string") # for first and last to have different shapes
                 #assigning colours to each vertex in loop
 
+                # print("now printing vertices")
+                # # for z in g.vertices():
+                # #     print(z)
+
+
                 for vertex in g.vertices():
-                    if(ii==0):
-                        print("python: generating triangle to mark beginning node")
-                        vshape[vertex]="triangle"
-                        v_prop[vertex]=labelarray[ii]
-                        v_prop2[vertex]=colorarray[ii]
-                        ii=ii+1
-                        continue
+                    # if(ii==0):
+                    #     print("python: generating triangle to mark beginning node")
+                    #     vshape[vertex]="triangle"
+                    #     v_prop[vertex]=labelarray[ii]
+                    #     v_prop2[vertex]=colorarray[ii]
+                    #     ii=ii+1
+                    #     continue
+
+
                     # print("setting labelarray element for node "+ii+" -> "labelarray[ii])
-                    v_prop[vertex]=labelarray[ii]
-                    # print("setting colorarray element for node "+ii+" -> "colorarray[ii])
+                    # v_prop[vertex]=labelarray[ii] # was this before = str(vertex) which was used for colour checking
+                    v_prop[vertex] = str(vertex)
+                    print("setting colorarray element for node to " + str(colorarray[ii])+ " ii is "+str(ii))
                     v_prop2[vertex]=colorarray[ii]
                     vshape[vertex]="circle"
                     ii=ii+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
                 lastIndex =0 #variable to indicate when we have reached the end
                 for v in g.vertices():
-                    if(lastIndex==ii-1):#if it is equal to the last one, set to square
+                    lastIndex=lastIndex+1
+                    if(lastIndex==ii):#if it is equal to the last one, set to square
                         vshape[v]="square"
                         print("python: generating square to mark last node")
-                    lastIndex=lastIndex+1
                 #now new section to generate dimensions for drawings
                 dimension_i=0
                 dimension_ii=0
@@ -136,7 +144,9 @@ def main():
             # graph_draw(g, vertex_text= v_prop, vertex_font_size=8, edge_color=edge_des_color,output=folderout) #vertex_text=v_prop, to show labels on nodes
             #pos = arf_layout(g,max_iter=1000) #output_size=(size_dim_1,size_dim_1)
             try:
-                graph_draw(g, vertex_fill_color=v_prop2,vertex_shape=vshape, edge_color=edge_des_color,output_size=(dimension_ii,dimension_ii), output=folderout) #vertex_text=v_prop, to show labels on nodes
+                #overridin for debugging delete
+                dimension_ii=1000
+                graph_draw(g, vertex_fill_color=v_prop2,vertex_text= v_prop, vertex_shape=vshape, edge_color=edge_des_color,output_size=(dimension_ii,dimension_ii), output=folderout) #vertex_text=v_prop, to show labels on nodes
             except:
                 print("python: error drawing graph")
 
