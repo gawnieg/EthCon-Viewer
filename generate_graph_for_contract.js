@@ -178,9 +178,6 @@ function sortDepth(orig_steps){
         structLogs[index].graphArray=mem_index
       else:
         structLogs[index].graphArray=structLogs[index-1].graphArray
-
-
-
   */
   var TwoDarrayWithDepths = Create2DArray(2000);
   //making the array with a loop [1,2,3,4,5 ....2000]

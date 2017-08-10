@@ -311,18 +311,19 @@ function generateSigmaCombinedObject(items){
   for(var rl=0;rl<items.length;rl++){
     realLenghtOfNodes.push(0);//fill with zeroes!
   }
-  for(var indexl=0;indexl<items.length;indexl++){
+  for(var indexl=0;indexl<items.length;indexl++){ //for each graph passed
     var r_sigma = items[indexl].sigmaobj;
-    if(r_sigma!=null){
+    if(r_sigma!=null){ // if the graph exists
       // console.log("finding real length "+indexl)
       for(var findl=0;findl<r_sigma.nodes.length;findl++){
         var tempnodeobj=parseInt(r_sigma.nodes[findl].id);
         if(tempnodeobj>realLenghtOfNodes[indexl]){
-          realLenghtOfNodes[indexl]=tempnodeobj;
+          realLenghtOfNodes[indexl]=tempnodeobj; //set the highest seen to that index in the array
         }
       }
     }
   }
+  // console.log("legnth of first array is "+items[0].sigmaobj.nodes.length)
   console.log("realLenghtOfNodes is :"+realLenghtOfNodes)
   //add one to all of realLenghtOfNodes
   for(var p1=0;p1<realLenghtOfNodes.length;p1++){
@@ -741,7 +742,7 @@ function find_in_db(contractTransList,callback,res){
                   .then(function(col) {
                       return col.find({transaction_no : {$in: contractTransList}}).toArray()
                           .then(function(items) {
-                              console.log("db replied")
+                              console.log("db replied with "+items.length + "items")
                               var found_trans =[]
                               items.forEach(function(item){
                                 found_trans.push(item);//the whole object
@@ -755,6 +756,8 @@ function find_in_db(contractTransList,callback,res){
 }
 
 
+
+//returns raw geth debug_traceTransaction output, primarly used for debugging
 app.get("/checktrans",function(req,res){
   var transaction = req.query.transaction;
   transaction=transaction.toString()
@@ -790,6 +793,49 @@ var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/qu
       );
   })
 }
+
+
+
+
+
+//_-----------------------------------------------------------------------------------------------------------------------------------
+//adding new route to pull graphml format from it, might be overkill
+app.get("/getgraphml",function(req,res){
+  var transaction = req.query.transaction;
+  transaction=transaction.toString()
+  console.log("getting graphml for "+transaction)
+  var checkForgml = [];
+  checkForgml.push(transaction);
+  find_in_db(checkForgml,graphmlcallback,res)
+})//end of route
+//callback function for /getgraphml
+var graphmlcallback= function(contractTransList,found_trans,res){//contractTransList will not be used, just there to reuse find_in_db
+  //extract graphml from db response found_trans
+  var graphmlres=found_trans[0].graphml
+  // graphmlres=JSON.stringify(graphmlres)
+  console.log("graphml is"+ graphmlres)
+  console.log("rendering response");
+  res.render("graphmlformat.ejs",{
+    graphml: graphmlres
+  })
+}
+//----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //###################################################################
 //NEW ROUTE!!
 //###################################################################

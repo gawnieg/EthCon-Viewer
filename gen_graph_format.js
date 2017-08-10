@@ -18,9 +18,9 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
   var suffix = "}\`\n";
   var newline = '\n';
   //graphml formatting
-  returnObj.res_str_gml=returnObj.res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n","<graphml xmlns=\"http://grapml.graphdrawing.org/xmlns\"\n",
+  returnObj.res_str_gml=returnObj.res_str_gml.concat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n","<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\"\n",
     "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n", "xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n",
-    "<graph id=\"G\" edgedefault=\"undirected\">\n" );
+    "<graph id=\"G\" edgedefault=\"directed\">\n" );
 
   returnObj.res_str=returnObj.res_str.concat(prefix,newline);
   returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat("digraph{",newline);
@@ -33,10 +33,6 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
     //if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
     var opcode = logs[x].op;
 
-
-
-
-
     if(SINGLE_NODES_OFF){
       if(TwoDChecklist[graph_depth][x] >=1){
         console.log("single (Unconnected) node "+logs[x].step+" which is a "+logs[x].op+"...skipping!")
@@ -48,11 +44,7 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       continue;
     }
 
-
-
-
-
-    switch(opcode){
+    switch(opcode){ // swaps and dups have no edge or node! they are "internal" opcodes
       case "SWAP0":
       continue;
       case "SWAP1":
@@ -151,6 +143,46 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       sigma_edge_index=sigma_edge_index.concat("to");
       sigma_edge_index=sigma_edge_index.concat((y.toString()))
       returnObj.sigmaobj.edges.push({"id":sigma_edge_index, "source":(logs[x].arg_origins[y].step).toString(), "target":(logs[x].step).toString(),"color":"#006666"});
+    }
+    //extra edges for isolated subgraph
+    if(opcode=="JUMP"){
+
+
+      //now must check what opcode this is, sometimes it is a DUP which messes everything up
+      const dupswaparr=["DUP","DUP1","DUP2","DUP3","DUP4","DUP5","DUP6","DUP7","DUP8","DUP9","SWAP0",
+    "SWAP1","SWAP2","SWAP3","SWAP4","SWAP5","SWAP6","SWAP7","SWAP8","SWAP9"]
+      var stepplusone;
+      var testopcode="";
+      //need to write code so that it goes to next valid opcode
+      for(var i=2;i < 100;i++){ //start at 2 and consider the next 100 opcodes
+
+        testopcode=logs[x+i].op;
+        console.log("testopcode is "+testopcode)
+
+        if(dupswaparr.indexOf(testopcode)==-1){ //if its not in the bad array
+        //1 AHEAD is JUMPDEST, 2 ahead seems to be dup a lot of the time, if this is the case go tree ahead
+          stepplusone= parseInt(logs[x+i].step);
+          console.log("stepplusone changed to "+stepplusone+" which is "+ testopcode)
+          break;
+        }
+      }
+      stepplusone=stepplusone.toString(); //needed for formats!
+
+
+
+
+      console.log("adding JUMP edge from "+logs[x].step+" to "+stepplusone)
+      //need edge from jump to next step
+      returnObj.res_str=returnObj.res_str.concat(logs[x].step, " -> ",stepplusone,newline);
+      //modifed graph tools format
+      returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step," -> ",stepplusone,newline);
+      //graphml format
+      returnObj.res_str_gml=returnObj.res_str_gml.concat("<edge source=\"",logs[x].step,"\" target=\"",stepplusone,"\"/>\n");
+      //returnObj.sigmaobj format
+      var sigma_edge_index = "jumpedge"; //think about this, need a unique string, coming from and going to combined is unique
+      sigma_edge_index=sigma_edge_index.concat(logs[x].step,"to");
+      sigma_edge_index=sigma_edge_index.concat(logs[x].step+1)
+      returnObj.sigmaobj.edges.push({"id":sigma_edge_index, "source":(logs[x].step).toString(), "target":stepplusone,"color":"#FF4500"});//orange
     }
   }
   returnObj.res_str=returnObj.res_str.concat(suffix,newline);

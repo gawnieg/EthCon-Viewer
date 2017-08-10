@@ -93,7 +93,7 @@ def main():
                     # print("setting labelarray element for node "+ii+" -> "labelarray[ii])
                     # v_prop[vertex]=labelarray[ii] # was this before = str(vertex) which was used for colour checking
                     v_prop[vertex] = str(vertex)
-                    print("setting colorarray element for node to " + str(colorarray[ii])+ " ii is "+str(ii))
+                    # print("setting colorarray element for node to " + str(colorarray[ii])+ " ii is "+str(ii))
                     v_prop2[vertex]=colorarray[ii]
                     vshape[vertex]="circle"
                     ii=ii+1

@@ -463,6 +463,10 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
   var step_number=0;
   var stack_origins=[];
   var length = sLogs.length;
+  // new link sub graphs idea
+  var linkSubGraphs =[];
+  var debugarray=[];
+  var stepNumNoJump=0;
 
   for(var i=0; i<length;i++ ){
     // console.log("--------------NEXT STEP--------------"+i)
@@ -477,6 +481,22 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
       sLogs[i].colour = colour;
       sLogs[i].hexcolour= hexcolour;
 
+      /*new subgraph idea
+        if the stack is empty, then the next step will be the start of a new island
+        record the step that it went empty at and tied it back to the one previous
+      */
+      if(sLogs[i].stack.length==0 || sLogs[i].op=="JUMP" || sLogs[i].op=="JUMPI"){ //if the stack is empty
+        //need edge between the last one and this one
+        var subgraphEdge = {
+          "from": step_number-1,
+          "to": step_number
+        }
+        linkSubGraphs.push(subgraphEdge); // add it to the edge list
+      }
+
+
+
+
       var length_stack_origin= stack_origins.length;
       //set arg_origins for this step as the items that were consumed from the stack,
       //for c=3, the last three things on the stack_origin, for example if stack_origin was [a,b,c,d,e], then arg_origins = [c,d,e]
@@ -490,7 +510,35 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
       }
       //update stack_origins
       stack_origins=update_stack_origins(stack_origins,sLogs[i]);
+
+
+      //for debugging remove
+      // proD=c_r.p;
+      //
+      // var debugstep={
+      //   "opcode":sLogs[i].op,
+      //   "step":step_number,
+      //   "c":c,
+      //   "p":proD,
+      //   "stack":sLogs[i].stack,
+      //   "stack_origins":stack_origins,
+      //   "arg_origins":sLogs[i].arg_origins
+      // }
+      // if(sLogs[i].opcode!= "JUMPDEST"){
+      //
+      //         debugarray.push(debugstep);
+      // }
+
+
+
   }
+  console.log("printing subgraphEdges");
+  linkSubGraphs.forEach(function(each){
+    console.log(JSON.stringify(each))
+  })
+  // console.log("printing debugarray");
+  // console.log(JSON.stringify(debugarray))
+
   return output;
 }
 
@@ -588,7 +636,7 @@ function update_stack_origins(orig,sLog){
     var new_elements = [];
   }
   orig = orig.concat(new_elements); //what stack_origin was concated with either: [] or [{depth: 1, step: <sLogStep>}]
-  //this will then go on to have its value set in the idx loop in modify_structLogs in the next step or pc. 
+  //this will then go on to have its value set in the idx loop in modify_structLogs in the next step or pc.
   return orig;
 
 }
