@@ -71,13 +71,52 @@ def main():
             #print("python: length of labelarray is "+labelarray.len)
             try:
                 v_prop=g.new_vertex_property("string") #for label
-                v_prop2 = g.new_vertex_property("string") #for colour
+                v_prop_colour = g.new_vertex_property("string") #for colour
                 vshape = g.new_vertex_property("string") # for first and last to have different shapes
                 #assigning colours to each vertex in loop
+                """
+                hold_colour_array is an array of the way the load_graph parsed the input file
+                hold_colour_array=[0, 1, 100, 101, 105, 106, 107, 108, 11, 111, 113, 115, 119, 12, 120, 122, 123, 124, 125, 129, 13, 130, 131, 132, 135, 137, 139, 14, 143, 144, 146, 147, 148, 149, 153, 154, 155, 156, 159, 16, 161, 163, 167, 168, 17, 170, 171, 172, 173, 177, 178, 179, 18, 180, 184, 186, 187, 19, 190, 191, 192, 194, 195, 199, 2, 200, 201, 203, 204, 205, 206, 209, 21, 211, 22, 25, 27, 28, 3, 33, 35, 36, 4, 40, 41, 42, 43, 45, 47, 5, 50, 51, 53, 57, 58, 59, 60, 63, 65, 67, 7, 71, 72, 74, 75, 76, 77, 8, 81, 82, 83, 84, 87, 89, 9, 91, 95, 96, 98, 99]
+                diff is the missing nodes, these are the ones missing from a list [0,1,2,3,....max_num_in_hold_colour_array]
+                diff is [6, 10, 15, 20, 23, 24, 26, 29, 30, 31, 32, 34, 37, 38, 39, 44, 46, 48, 49, 52, 54, 55, 56, 61, 62, 64, 66, 68, 69, 70, 73, 78, 79, 80, 85, 86, 88, 90, 92, 93, 94, 97, 102, 103, 104, 109, 110, 112, 114, 116, 117, 118, 121, 126, 127, 128, 133, 134, 136, 138, 140, 141, 142, 145, 150, 151, 152, 157, 158, 160, 162, 164, 165, 166, 169, 174, 175, 176, 181, 182, 183, 185, 188, 189, 193, 196, 197, 198, 202, 207, 208, 210]
 
-                # print("now printing vertices")
-                # # for z in g.vertices():
-                # #     print(z)
+                x is 0 count_missing 0 colour_array is #ffcccc
+                x is 1 count_missing 0 colour_array is #ffcccc
+                x is 100 count_missing 42 colour_array is #ffcccc
+                x is 101 count_missing 42 colour_array is #ffffff
+                x is 105 count_missing 45 colour_array is #d9f2d9
+                .
+                .
+                .
+                real_index is what colour from colorarray should be used
+                real index [0, 1, 58, 59, 60, 61, 62, 63, 9, 64, 65, 66, 67, 10, 68, 69, 70, 71, 72, 73, 11, 74, 75, 76, 77, 78, 79, 12, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 13, 91, 92, 93, 94, 14, 95, 96, 97, 98, 99, 100, 101, 15, 102, 103, 104, 105, 16, 106, 107, 108, 109, 110, 111, 2, 112, 113, 114, 115, 116, 117, 118, 17, 119, 18, 19, 20, 21, 3, 22, 23, 24, 4, 25, 26, 27, 28, 29, 30, 5, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 6, 41, 42, 43, 44, 45, 46, 7, 47, 48, 49, 50, 51, 52, 8, 53, 54, 55, 56, 57]
+                """
+                nodes_length=0
+                hold_colour_array=[]
+                for v in g.vertices():
+                    colour_index = int(g.vp.vertex_name[v])
+                    hold_colour_array.append(colour_index)
+                    nodes_length=nodes_length +1
+                # now assign each of these vertex numbers a index
+                # indexs greater than colour array since colour array does
+                listofnum = list(range(max(hold_colour_array)))#create a list like [0,1,2,3, to max num in hold_colour array]
+                diff = list(set(listofnum)-set(hold_colour_array))
+                #for each number of the hold_colour_array, for up to that number we must find the number of numbers that have been excluded
+                count_missing =0
+                real_colour_index_array=[]
+                for hca in hold_colour_array:
+                    count_missing =0
+                    for d in diff:
+                        if(d<hca):
+                            count_missing=count_missing+1
+                    real_colour_index_array.append((hca-count_missing))
+                    # print("pythonx is "+str(hca)+" count_missing "+str(count_missing)+ " colour_array is "+ colour_array[(hca-count_missing)])
+                # setting colours now with property
+                real_index=0
+                for vertex in g.vertices():
+                    v_prop_colour[vertex]=colorarray[real_colour_index_array[real_index]]
+                    real_index=real_index+1
+
 
 
                 for vertex in g.vertices():
@@ -85,16 +124,9 @@ def main():
                     #     print("python: generating triangle to mark beginning node")
                     #     vshape[vertex]="triangle"
                     #     v_prop[vertex]=labelarray[ii]
-                    #     v_prop2[vertex]=colorarray[ii]
+                    #     v_prop_colour[vertex]=colorarray[ii]
                     #     ii=ii+1
                     #     continue
-
-
-                    # print("setting labelarray element for node "+ii+" -> "labelarray[ii])
-                    # v_prop[vertex]=labelarray[ii] # was this before = str(vertex) which was used for colour checking
-                    v_prop[vertex] = str(vertex)
-                    # print("setting colorarray element for node to " + str(colorarray[ii])+ " ii is "+str(ii))
-                    v_prop2[vertex]=colorarray[ii]
                     vshape[vertex]="circle"
                     ii=ii+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
@@ -126,10 +158,14 @@ def main():
                     print("setting dimension_ii to 2000")
                     dimension_ii=2000
                 elif(test1<100):
-                    dimension_ii=200
+                    dimension_ii=500
+                elif(test1<200):
+                    dimension_ii=600
+                elif(test1<300):
+                    dimension_ii=850
                     print("setting dimension_ii to 200")
                 elif(test1<500):
-                    dimension_ii=300
+                    dimension_ii=1400
                     print("setting dimension_ii to 300")
                 else:
                     print("default dimension_ii = test1")
@@ -146,7 +182,7 @@ def main():
             try:
                 #overridin for debugging delete
                 dimension_ii=1000
-                graph_draw(g, vertex_fill_color=v_prop2,vertex_text= v_prop, vertex_shape=vshape, edge_color=edge_des_color,output_size=(dimension_ii,dimension_ii), output=folderout) #vertex_text=v_prop, to show labels on nodes
+                graph_draw(g, vertex_fill_color=v_prop_colour, vertex_shape=vshape, edge_color=edge_des_color,output_size=(dimension_ii,dimension_ii), output=folderout) #vertex_text=v_prop, to show labels on nodes
             except:
                 print("python: error drawing graph")
 

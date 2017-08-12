@@ -152,6 +152,8 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
 
           } //end of for each depth loop
           //call one python graph tools child_process per transaction! it will take care of the depths itself!
+          console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
+          console.log(graphtools_color)
           pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphtools_label,transHashArray)
       }//end of if result.result != undefined
 
@@ -310,10 +312,10 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
       if (err) {
           return console.error(err);
       }
-      // fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
-      //      if(err) return console.log(err);
-      //      console.log('file deleted successfully');
-      // });//end unlink
+      fs.unlink(dotfilepath,function(err){ //actually deleting comment this functiont to not delete
+           if(err) return console.log(err);
+           console.log('file deleted successfully');
+      });//end unlink
     });//end file stat
     py.stdout.end();
   }); // on python 'finish'
