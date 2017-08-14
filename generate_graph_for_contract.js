@@ -111,6 +111,8 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
           // for each depth level generate its own graph
           var allGraphsPerTrans =""; // group all simple dot formats for each depth per each transactions and then send this to the python module
           var transHashArray=[]; //to store transHashArray for sending to
+          var allColoursPerTrans=[];//to store colourarrays
+          var allLabelsPerTrans=[];
           for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
 
             var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist); //seperate function to loop throuhg and generate formats
@@ -134,11 +136,11 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
 
             var sigmaobj = format.sigmaobj;
             var graphtools_label=format.graphtools_label;
+            allLabelsPerTrans.push(graphtools_label)
             var graphtools_color=format.graphtools_color;
+            allColoursPerTrans.push(graphtools_color);
             console.log("trace found and graph made ...now going to make graph tools pic")
-            var dotfilepath=randomstring.generate(7);// for some reason phython is requiring that it be in the same directory
-            dotfilepath=dotfilepath.concat(".dot");
-            console.log("dotfilepath: "+dotfilepath)
+
             //save to db
             db2.save_trans_to_db(contracts_trans_list[int_trans],
               res_str,res_str_gml,
@@ -150,11 +152,16 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
               graph_depth,
               tempname); //passing block number, transaction_no, graph output
 
+              // console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
+              // console.log(graphtools_color)
+
+
           } //end of for each depth loop
           //call one python graph tools child_process per transaction! it will take care of the depths itself!
-          console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
-          console.log(graphtools_color)
-          pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphtools_label,transHashArray)
+          var dotfilepath=randomstring.generate(7);// for some reason phython is requiring that it be in the same directory
+          dotfilepath=dotfilepath.concat(".dot");
+          console.log("dotfilepath: "+dotfilepath)
+          pythonGraphTools(dotfilepath,allGraphsPerTrans,allColoursPerTrans,allLabelsPerTrans,transHashArray)
       }//end of if result.result != undefined
 
      if(result.result==undefined){

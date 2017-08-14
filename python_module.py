@@ -20,11 +20,8 @@ def main():
     fromstdin = read_in()
     fileaddress=fromstdin[0];
     print("python: reading dot file: "+fileaddress)
-    # print("python colorarray", fromstdin[1])
-
     colorarray = fromstdin[1]
-
-    print(colorarray)
+    print(str(colorarray))
     labelarray = fromstdin[2]
     namingarray =fromstdin[3]
     #then load file
@@ -42,6 +39,7 @@ def main():
 
 
     for y in x[:-1]:
+        individColorArray=colorarray[i]
         #print("in loop!")
         y=y+"}" # put it back in!
         res.append(y)
@@ -66,9 +64,6 @@ def main():
                 print("python: loaded graph from "+filename)
             except:
                 print("python: error loading graph")
-            # print("python: colorarray"+colorarray)
-            # print("python: length of colorarray is "+colorarray.len)
-            #print("python: length of labelarray is "+labelarray.len)
             try:
                 v_prop=g.new_vertex_property("string") #for label
                 v_prop_colour = g.new_vertex_property("string") #for colour
@@ -87,10 +82,10 @@ def main():
                 x is 105 count_missing 45 colour_array is #d9f2d9
                 .
                 .
-                .
                 real_index is what colour from colorarray should be used
                 real index [0, 1, 58, 59, 60, 61, 62, 63, 9, 64, 65, 66, 67, 10, 68, 69, 70, 71, 72, 73, 11, 74, 75, 76, 77, 78, 79, 12, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 13, 91, 92, 93, 94, 14, 95, 96, 97, 98, 99, 100, 101, 15, 102, 103, 104, 105, 16, 106, 107, 108, 109, 110, 111, 2, 112, 113, 114, 115, 116, 117, 118, 17, 119, 18, 19, 20, 21, 3, 22, 23, 24, 4, 25, 26, 27, 28, 29, 30, 5, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 6, 41, 42, 43, 44, 45, 46, 7, 47, 48, 49, 50, 51, 52, 8, 53, 54, 55, 56, 57]
                 """
+                print("python: setting colours")
                 nodes_length=0
                 hold_colour_array=[]
                 for v in g.vertices():
@@ -99,8 +94,10 @@ def main():
                     nodes_length=nodes_length +1
                 # now assign each of these vertex numbers a index
                 # indexs greater than colour array since colour array does
+                print("python: now have hold_colour_array"+str(hold_colour_array))
                 listofnum = list(range(max(hold_colour_array)))#create a list like [0,1,2,3, to max num in hold_colour array]
                 diff = list(set(listofnum)-set(hold_colour_array))
+                print("python: now have diff"+str(diff))
                 #for each number of the hold_colour_array, for up to that number we must find the number of numbers that have been excluded
                 count_missing =0
                 real_colour_index_array=[]
@@ -109,16 +106,17 @@ def main():
                     for d in diff:
                         if(d<hca):
                             count_missing=count_missing+1
-                    real_colour_index_array.append((hca-count_missing))
-                    # print("pythonx is "+str(hca)+" count_missing "+str(count_missing)+ " colour_array is "+ colour_array[(hca-count_missing)])
+                    if((hca-count_missing)>=len(individColorArray)):# if the figure found is out of bounds fix to a particular point
+                        print("python:out of bounds by "+str(hca-count_missing)+" fixing to 0")
+                        real_colour_index_array.append(0);
+                    else:
+                        real_colour_index_array.append((hca-count_missing)) # add the offset to the real_colour_index_array
                 # setting colours now with property
-                real_index=0
+                real_index=0 # just incrementer thru real_colour_index_array
                 for vertex in g.vertices():
-                    v_prop_colour[vertex]=colorarray[real_colour_index_array[real_index]]
+                    v_prop_colour[vertex]=individColorArray[real_colour_index_array[real_index]] # get the hex colour string
                     real_index=real_index+1
-
-
-
+                # now setting shapes of units
                 for vertex in g.vertices():
                     # if(ii==0):
                     #     print("python: generating triangle to mark beginning node")
@@ -194,7 +192,7 @@ def main():
             for d in data:
                 coll.update( {"randomHash": toupdate},{"$set": {"graphToolsGen": 1}})
                 print("python: updated generated_graph field in DB for "+ toupdate)
-        i=i+1
+        i=i+1 # this is counter for x in y
         #now delete the file on dis
         print("python: deleting temp file "+filename)
         os.remove(filename)

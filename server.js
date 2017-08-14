@@ -373,6 +373,12 @@ function generateSigmaCombinedObject(items){
 
           multiobj.nodes.push({id: (newnodeid.toString()), x:oldx, y:oldy,label:oldlabel,color:oldcolor,size:oldsize});
         }
+        //setting random colours
+        var randomColours=[]
+        for(var colourIndex=0; colourIndex<=i;colourIndex++){
+          var newColour = generateRandomColours()
+          randomColours.push(newColour);//get random colour and add to array!
+        }
         //now add to each edge additional_length_node and then push to first object
         for(var iiii=0;iiii<r_sigma.edges.length;iiii++){
           var newsource = parseInt(r_sigma.edges[iiii].source)+additional_length_node;
@@ -385,7 +391,8 @@ function generateSigmaCombinedObject(items){
             var edgecolour = "rgb(191,182,65)";//gold colour
           }
           else{
-            var edgecolour = "rgb(50,50,30)";//default colour
+            var edgecolour=randomColours[i];//get from array built earlier
+            // var edgecolour = "rgb(50,50,30)";//default colour
           }
           multiobj.edges.push({id: newid.toString(),source:newsource.toString(),target:newtarget.toString(),color:edgecolour});
         }
@@ -393,6 +400,15 @@ function generateSigmaCombinedObject(items){
     }
   }
   return multiobj;
+}
+function generateRandomColours(){
+
+  var rgb1= Math.floor(Math.random()*(255));
+  var rgb2= Math.floor(Math.random()*(255));
+  var rgb3= Math.floor(Math.random()*(255));
+  var edgecolour ="rgb(";
+  edgecolour=edgecolour.concat(rgb1.toString(),",",rgb2.toString(),",",rgb1.toString(),")");
+  return edgecolour //returns in the form "rgb(x,y,z)"
 }
 
 function add_blocks_graph_to_db(block_num,num_block){
@@ -839,7 +855,7 @@ var graphmlcallback= function(contractTransList,found_trans,res){//contractTrans
 //###################################################################
 //NEW ROUTE!!
 //###################################################################
-app.get("/getmultiblock",function(req,res){
+app.get("/getmultiblock",function(req,res){ // this only works for mainnet due to http calls only going to etherchain
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
   console.log("====================\n getmultiblock has been called for \n========================")
@@ -879,7 +895,7 @@ app.get("/getmultiblock",function(req,res){
 
   var transHashList=[];
 
-  async.map(urls, httpGet, function (err, res){
+  async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
     if (err) return console.log(err);
     for(var index=0; index<res.length;index++){
       //now exract data of each
@@ -888,7 +904,7 @@ app.get("/getmultiblock",function(req,res){
         transHashList.push(data_array[dataIndex].hash.toString());
       }
     }
-    console.log("got http requests")
+    console.log("finished http requests")
     console.log("transHashList is :");
     transHashList.forEach(function(each){
       console.log(each)

@@ -65,7 +65,19 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       continue;
       case "SWAP9":
       continue;
-      case "SWAP0":
+      case "SWAP10":
+      continue;
+      case "SWAP11":
+      continue;
+      case "SWAP12":
+      continue;
+      case "SWAP13":
+      continue;
+      case "SWAP14":
+      continue;
+      case "SWAP15":
+      continue;
+      case "SWAP16":
       continue;
       case "DUP0":
       continue;
@@ -86,6 +98,20 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
       case "DUP8":
       continue;
       case "DUP9":
+      continue;
+      case "DUP10":
+      continue;
+      case "DUP11":
+      continue;
+      case "DUP12":
+      continue;
+      case "DUP13":
+      continue;
+      case "DUP14":
+      continue;
+      case "DUP15":
+      continue;
+      case "DUP16":
       continue;
       }
     //lookup colour in array
@@ -146,29 +172,31 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
     }
     //extra edges for isolated subgraph
     if(opcode=="JUMP"||opcode=="JUMPI"){
-      console.log("====================  JUMP OR JUMPI DETECTED =============")
+      // console.log("====================  JUMP OR JUMPI DETECTED =============")
       //now must check what opcode this is, sometimes it is a DUP which messes everything up
-      const dupswaparr=["JUMPDEST","DUP","DUP1","DUP2","DUP3","DUP4","DUP5","DUP6","DUP7","DUP8","DUP9","SWAP0",
-    "SWAP1","SWAP2","SWAP3","SWAP4","SWAP5","SWAP6","SWAP7","SWAP8","SWAP9"]
+      const dupswaparr=["JUMPDEST","DUP","DUP1","DUP2","DUP3","DUP4","DUP5","DUP6","DUP7","DUP8","DUP9","DUP10",
+      "DUP11","DUP12","DUP13","DUP14","DUP15","DUP16","SWAP0",
+    "SWAP1","SWAP2","SWAP3","SWAP4","SWAP5","SWAP6","SWAP7",
+    "SWAP8","SWAP9","SWAP10","SWAP11","SWAP12","SWAP13","SWAP14","SWAP15","SWAP16"]
       var stepplusone;
       var testopcode="";
-      console.log("opcode is "+opcode);
+      // console.log("opcode is "+opcode);
       //need to write code so that it goes to next valid opcode
       for(var i=2;i < 100;i++){ //start at 2 and consider the next 100 opcodes
 
         testopcode=logs[x+i].op;
-        console.log("next is "+testopcode)
+        // console.log("next is "+testopcode)
 
 
         if(dupswaparr.indexOf(testopcode)==-1){ //if its not in the bad array
         //1 AHEAD is JUMPDEST, 2 ahead seems to be dup a lot of the time, if this is the case go tree ahead
           stepplusone= parseInt(logs[x+i].step);
-          console.log("stepplusone changed to "+stepplusone+" which is "+ testopcode)
+          // console.log("stepplusone changed to "+stepplusone+" which is "+ testopcode)
           break;
         }
       }
       stepplusone=stepplusone.toString(); //needed for formats!
-      console.log("adding JUMP edge from "+logs[x].step+" to "+testopcode)
+      console.log("adding JUMP or JUMPI edge from "+logs[x].step+" to "+testopcode)
       //need edge from jump to next step
       returnObj.res_str=returnObj.res_str.concat(logs[x].step, " -> ",stepplusone,newline);
       //modifed graph tools format
