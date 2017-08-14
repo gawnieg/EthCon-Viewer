@@ -19,9 +19,7 @@ def main():
     #get our data as an array from read_in()
     fromstdin = read_in()
     fileaddress=fromstdin[0];
-    # print("python: reading dot file: "+fileaddress)
     colorarray = fromstdin[1]
-    print(str(colorarray))
     labelarray = fromstdin[2]
     namingarray =fromstdin[3]
     #then load file
@@ -94,10 +92,11 @@ def main():
                     nodes_length=nodes_length +1
                 # now assign each of these vertex numbers a index
                 # indexs greater than colour array since colour array does
-                print("python: now have hold_colour_array"+str(hold_colour_array))
+                maxhold = max(hold_colour_array) # maximum to set shapes
+                minhold = min(hold_colour_array)
+
                 listofnum = list(range(max(hold_colour_array)))#create a list like [0,1,2,3, to max num in hold_colour array]
                 diff = list(set(listofnum)-set(hold_colour_array))
-                print("python: now have diff"+str(diff))
                 #for each number of the hold_colour_array, for up to that number we must find the number of numbers that have been excluded
                 count_missing =0
                 real_colour_index_array=[]
@@ -108,46 +107,24 @@ def main():
                             count_missing=count_missing+1
                     if((hca-count_missing)>=len(individColorArray)):# if the figure found is out of bounds fix to a particular point
                         print("python:out of bounds by "+str(hca-count_missing)+" fixing to 0")
-                        real_colour_index_array.append(0);
+                        real_colour_index_array.append(0); # should change so that it is crimson!
                     else:
                         real_colour_index_array.append((hca-count_missing)) # add the offset to the real_colour_index_array
                 # setting colours now with property
                 real_index=0 # just incrementer thru real_colour_index_array
                 for vertex in g.vertices():
                     v_prop_colour[vertex]=individColorArray[real_colour_index_array[real_index]] # get the hex colour string
+                    realnumber = int(g.vp.vertex_name[vertex])
+                    if(realnumber==maxhold):
+                        vshape[vertex]="square"
+                    elif(realnumber==minhold):
+                        vshape[vertex]="triangle"
+                    else:
+                        vshape[vertex]="circle"
                     real_index=real_index+1
-                # now setting shapes of units
-                for vertex in g.vertices():
-                    # if(ii==0):
-                    #     print("python: generating triangle to mark beginning node")
-                    #     vshape[vertex]="triangle"
-                    #     v_prop[vertex]=labelarray[ii]
-                    #     v_prop_colour[vertex]=colorarray[ii]
-                    #     ii=ii+1
-                    #     continue
-                    vshape[vertex]="circle"
-                    ii=ii+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
-                lastIndex =0 #variable to indicate when we have reached the end
-                for v in g.vertices():
-                    lastIndex=lastIndex+1
-                    if(lastIndex==ii):#if it is equal to the last one, set to square
-                        vshape[v]="square"
-                        print("python: generating square to mark last node")
-                #now new section to generate dimensions for drawings
                 dimension_i=0
                 dimension_ii=0
-                # min_dimension = 400
-                # print("python: lastIndex will be "+str(lastIndex))
-                # dimension_i = min(lastIndex,min_dimension) #set minimum external dimension
-                # print("python: output_dim_test will be "+str(dimension_i))
-                #
-                # if(dimension_i == min_dimension): # if the dimension_i was really large...
-                #     dimension_ii = max(lastIndex,2500) #set maximum external dimension
-                # else:
-                #     dimension_ii = dimension_i
-                # print("python: output_size will be "+str(dimension_ii))
-
                 # try simpler mechanism
                 test0=2*lastIndex
                 test1= int(test0)

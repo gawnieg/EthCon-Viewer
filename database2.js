@@ -1,13 +1,6 @@
 var mp = require('mongodb-promise');
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/test";
-//
-// // Obtaining a connection
-// mp.MongoClient.connect("mongodb://127.0.0.1:27017/test").then(function(db){
-//     db.close().then(console.log('success'));
-// }, function(err) {
-//     console.log(err);
-// });
 
 module.exports={
    save_to_db: function(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth){
@@ -24,16 +17,6 @@ module.exports={
   }
 }
 
-// // Read Db stats
-// mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
-// .then(function(db){
-//     return db.stats().then(function(stats) {
-//         console.log(stats);
-//         db.close().then(console.log('success'));
-//     })
-// })
-// .fail(function(err) {console.log(err)});
-
 // Insert documents
 function save_to_db(_block_num,_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth){ //num return is the totatl depth level for that block, _graph_depth is the exact level for that particular graph
 mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
@@ -49,7 +32,6 @@ mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
 })
 .fail(function(err) {console.log(err);});
 }
-
 
 // for view all trans in contract NOTE DIFFERENT URL
 function save_trans_to_db(_trans_no,_graph,_graphml,_sigmaobj,_res_str_dot_no_lbl,graphtools_label,graphtools_color,num_return,_graph_depth,_random_hash){ //num return is the totatl depth level for that block, _graph_depth is the exact level for that particular graph
@@ -83,18 +65,3 @@ mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
 })
 .fail(function(err) {console.log(err)});
 }
-//
-// // Read each document
-// mp.MongoClient.connect("mongodb://127.0.0.1:27017/test")
-//     .then(function(db){
-//         return db.collection('test')
-//             .then(function(col) {
-//                 return col.find({a : 1}).each(function(doc) {
-//                     console.log(doc);
-//                 })
-//                 .then(function() {
-//                     db.close().then(console.log('success'));
-//                 })
-//         })
-// })
-// .fail(function(err) {console.log(err);});
