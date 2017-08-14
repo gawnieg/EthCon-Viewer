@@ -120,9 +120,9 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
             var lengthOfNodes = format.sigmaobj.nodes.length;//for debugging
             var lengthOfColours = format.graphtools_color.length;
             var lengthOfLabels = format.graphtools_label.length;
-            console.log("lengthOfNodes "+lengthOfNodes);
-            console.log("lengthOfColours "+lengthOfColours);
-            console.log("lengthOfLabels "+lengthOfLabels)
+            // console.log("lengthOfNodes "+lengthOfNodes);
+            // console.log("lengthOfColours "+lengthOfColours);
+            // console.log("lengthOfLabels "+lengthOfLabels)
 
             var res_str = format.res_str;
             var res_str_gml=format.res_str_gml;
@@ -164,7 +164,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
           pythonGraphTools(dotfilepath,allGraphsPerTrans,allColoursPerTrans,allLabelsPerTrans,transHashArray)
       }//end of if result.result != undefined
 
-     if(result.result==undefined){
+     if(result.result==undefined||result.result.structLogs.length==0){
         console.log("no trace found but saving placeholder");
         db2.save_trans_to_db(contracts_trans_list[int_trans],"bad block!"); //passing block number, transaction_no, graph output.
      }

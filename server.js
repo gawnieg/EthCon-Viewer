@@ -855,7 +855,7 @@ var graphmlcallback= function(contractTransList,found_trans,res){//contractTrans
 //###################################################################
 //NEW ROUTE!!
 //###################################################################
-app.get("/getmultiblock",function(req,res){ // this only works for mainnet due to http calls only going to etherchain
+app.get("/getmultiblock",function(req,renderres){ // this only works for mainnet due to http calls only going to etherchain
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
   console.log("====================\n getmultiblock has been called for \n========================")
@@ -910,7 +910,7 @@ app.get("/getmultiblock",function(req,res){ // this only works for mainnet due t
       console.log(each)
     })
     console.log("now continuing doing something else")
-    find_in_db(transHashList,callback,res);
+    find_in_db(transHashList,callback,renderres);
 
   });
 });//end of route

@@ -19,7 +19,7 @@ def main():
     #get our data as an array from read_in()
     fromstdin = read_in()
     fileaddress=fromstdin[0];
-    print("python: reading dot file: "+fileaddress)
+    # print("python: reading dot file: "+fileaddress)
     colorarray = fromstdin[1]
     print(str(colorarray))
     labelarray = fromstdin[2]

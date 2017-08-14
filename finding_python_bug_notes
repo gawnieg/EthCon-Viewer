@@ -5,6 +5,7 @@ trans hashes:
 0xe33efe72db32afbee6261d628a0b5a81bfb34f8bd2ca3381541fc4ab61396e2c_1 @ 	3949365
 via url http://localhost:3005/contract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3949365&end=3967296
 
+NOTE think I have fixed this bug with the colorarray problem of not sending all arrays
 
 //refactoring get blocks
 - find all the transaction hashes in the range of blocks.
