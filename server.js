@@ -48,6 +48,8 @@ catch(err){
   console.log("Chucking error for connecting to Geth" +err);
 }
 
+
+// homepage!!!
 app.get("/",function(req,res){
   res.render("homepage.ejs")
 })
@@ -122,7 +124,6 @@ app.get('/api/graphviz', function(req, res) {
   */
   var upper_block_limit = parseInt(block_num) + parseInt(num_block);
   var response_graphviz=[];
-  var response_sigma =[]; //making array of objects
   for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
     mp.MongoClient.connect(url)
       .then(function(db){
@@ -136,7 +137,6 @@ app.get('/api/graphviz', function(req, res) {
                                 var r = items[i].graph;
                                 r=r.toString();
                                 response_graphviz.push(r)
-                                console.log("typeof r is "+typeof(r))
                               }
                             db.close()
                             .then(function(){
@@ -569,6 +569,9 @@ app.get("/checktrans",function(req,res){
   console.log("#################\nThe sanity checker has been called for the transaction: \n ########################\n"+transaction)
   checkTrans(transaction).then(function (result) {
     console.log("rendering"+result)
+    if(result===undefined){
+      result = "result was found to be undefined"
+    }
     res.render("checktrans.ejs",{
       traceTrans: result
     })
@@ -630,17 +633,39 @@ var graphmlcallback= function(contractTransList,found_trans,res){//contractTrans
 //###################################################################
 //NEW ROUTE!!
 //###################################################################
+
+//this function will be run for when we are running from the testnet to find the transactions in a block
+var getTransactionsFromBlock = function(block){
+  var block_result=  web3.eth.getBlock(block);
+  // console.log("block_result"+JSON.stringify(block_result))
+  return block_result.transactions;
+}
+
+
 app.get("/getmultiblock",function(req,renderres){ // this only works for mainnet due to http calls only going to etherchain
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
   console.log("====================\n getmultiblock has been called for \n========================")
   //Find transaction in all of these blocks
   var block_list =[];
+  var transHashList=[];// array to store transaction hashes from each of the blocks!
   //make list of blocks for which to get the transactions hashes
   for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
     block_list.push(b);
   }
-  var urls=constructURLs(block_list);
+  if(testORmain=="test"){
+    block_list.forEach(function(each){
+      var transperblock=getTransactionsFromBlock(each);
+      transperblock.forEach(function(trans){
+        transHashList.push(trans)
+      })
+    })
+    console.log("testnet is in operation so found through web3 call"+transHashList)
+  }
+  else{
+    var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
+  }
+
 
   //for request
   function httpGet(url, callback) {
@@ -664,7 +689,7 @@ app.get("/getmultiblock",function(req,renderres){ // this only works for mainnet
     })
     return urls;
   }
-  var transHashList=[];// array to store transaction hashes from each of the blocks!
+
   async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
     if (err) return console.log(err);
     for(var index=0; index<res.length;index++){

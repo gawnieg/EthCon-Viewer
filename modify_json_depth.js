@@ -31,7 +31,7 @@ function find_add_remove_nums(opcode){
 */
   switch(opcode) {
     case "STOP":
-    var r= {c: 0, p:0, colour:66,hexcolour:"#99ff66"} //crimson
+    var r= {c: 0, p:0, colour:66,hexcolour:"#800000"} //maroon
     break
     case "ADD": //Arithmetic
     var r= {c: 2, p:1,colour:50,hexcolour:"#ccefff"} // math operators = chocolate
