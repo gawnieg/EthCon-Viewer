@@ -524,6 +524,7 @@ var callback = function(contractTransList,found_trans,res){
 }
 
 function find_in_db(contractTransList,callback,res){
+  console.log("find in db called with "+contractTransList)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
               return db.collection('test')
@@ -543,8 +544,24 @@ function find_in_db(contractTransList,callback,res){
   .fail(function(err) {console.log(err)});
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+app.get("/transaction",function(req,res){
+
+  var transaction = req.query.transaction;
+  transaction=transaction.toString()
+    console.log("transaction called for "+transaction)
+  var transArr = [];
+  transArr.push(transaction);
+      console.log("transArr called for "+transArr)
+  find_in_db(transArr,callback,res);
+})
 
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //returns raw geth debug_traceTransaction output, primarly used for debugging
 app.get("/checktrans",function(req,res){
   var transaction = req.query.transaction;

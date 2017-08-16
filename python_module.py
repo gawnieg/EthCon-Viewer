@@ -97,6 +97,7 @@ def main():
 
                 listofnum = list(range(max(hold_colour_array)))#create a list like [0,1,2,3, to max num in hold_colour array]
                 diff = list(set(listofnum)-set(hold_colour_array))
+                print("getting here")
                 #for each number of the hold_colour_array, for up to that number we must find the number of numbers that have been excluded
                 count_missing =0
                 real_colour_index_array=[]
@@ -111,6 +112,7 @@ def main():
                     else:
                         real_colour_index_array.append((hca-count_missing)) # add the offset to the real_colour_index_array
                 # setting colours now with property
+                print("getting here 2")
                 real_index=0 # just incrementer thru real_colour_index_array
                 for vertex in g.vertices():
                     v_prop_colour[vertex]=individColorArray[real_colour_index_array[real_index]] # get the hex colour string
@@ -124,7 +126,8 @@ def main():
                     real_index=real_index+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
                 dimension_i=0
-                dimension_ii=0
+                print("getting here 3")
+                dimension_ii=1000
                 # try simpler mechanism
                 test0=2*lastIndex
                 test1= int(test0)
@@ -156,7 +159,10 @@ def main():
             #pos = arf_layout(g,max_iter=1000) #output_size=(size_dim_1,size_dim_1)
             try:
                 #overridin for debugging delete
-                dimension_ii=1000
+                #dimension_ii=1000
+                pos = sfdp_layout(g,K=5,p=3,C=0.6) # K: Optimal edge length. If not provided, it will be taken to be the average edge distance in the initial layout.
+                # p: Repulsive force exponent.
+                #C: Relative strength of repulsive forces.
                 graph_draw(g, vertex_fill_color=v_prop_colour, vertex_shape=vshape, edge_color=edge_des_color,output_size=(dimension_ii,dimension_ii), output=folderout) #vertex_text=v_prop, to show labels on nodes
             except:
                 print("python: error drawing graph")
