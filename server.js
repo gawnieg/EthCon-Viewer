@@ -57,7 +57,7 @@ app.get("/",function(req,res){
 
 
 // uses vis.js library
-app.get('/api/vis', function(req, res) {
+app.get('/vis', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
   console.log("------------NEW BROWSER REQUEST FOR VIS-------")
@@ -113,7 +113,7 @@ app.get('/api/vis', function(req, res) {
 });//end of express route
 
 // for Viz library - difference in what view it renders
-app.get('/api/graphviz', function(req, res) {
+app.get('/graphviz', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
   console.log("------------NEW BROWSER REQUEST FOR GRAPHVIZ-------")
@@ -198,70 +198,8 @@ var single_sigma_callback = function(transArr,found_trans,res){
 }
 
 
-
-
-
-
-
-
-app.get('/api/sigma', function(req, res) {
-  var block_num = req.query.block_num; // read in from URL
-  var num_block = req.query.num_block;
-  console.log("-----------NEW BROWSER REQUEST FOR SIGMAJS VIZ-------------")
-  console.log("received block_num:" + block_num +" ,num_block:" + num_block);
-
-  /*
-  Search for block in database. If it is not there then generate the blocks
-  */
-  var upper_block_limit = parseInt(block_num) + parseInt(num_block);
-
-  var response_sigma =[]; //making array of objects
-  for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect(url)
-      .then(function(db){
-              return db.collection('test')
-                  .then(function(col) {
-                      return col.find({block_num : block_num}).toArray()
-                          .then(function(items) {
-                            if(items.length){
-                              console.log("found "+items.length+" items for this block in DB!")
-                              for(i=0;i<items.length;i++){
-                                if(items[i].sigmaobj!=null){
-                                  var r_sigma = items[i].sigmaobj; // no toString needed since this is an object
-                                  response_sigma.push(r_sigma);
-                                }
-                              }
-                            db.close()
-                            .then(function(){
-                              console.log("yurt - this is a promise .then")
-                              // console.log(JSON.stringify(response_sigma));
-                            })
-                            .then(function (){
-                                console.log("rendering screen ejs")
-                                res.render("sigmaindex.ejs",{
-                                  block_num:block_num,
-                                  num_block:num_block,
-                                  sigmaobj_array:response_sigma
-                                });
-                            });
-                            }
-                            else{
-                              console.log("found nothing in DB so adding block no. "+block_num +" to db ");
-                              //add the specified graphs to the database
-                              add_blocks_graph_to_db(block_num,1);// 1 is blank does nt matter what
-                            }
-
-                          })
-
-              })
-  })
-  .fail(function(err) {console.log(err)});
-  }
-
-});//end of express route
-
 //view all trans from that same block
-app.get('/api/sigmamult', function(req, res) {
+app.get('/sigmamult', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
   console.log("-----------NEW BROWSER REQUEST FOR SIGMAJS MULT VIZ-------------")
@@ -456,7 +394,7 @@ function add_blocks_graph_to_db(block_num,num_block){
 }
 
 
-app.get("/contract",function(req,res){ //graph -tools per contract over a particular num blocks - start to end- working and good!
+app.get("/gtcontract",function(req,res){ //graph -tools per contract over a particular num blocks - start to end- working and good!
 
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
@@ -680,7 +618,7 @@ var getTransactionsFromBlock = function(block){
 }
 
 
-app.get("/getmultiblock",function(req,renderres){ // this only works for mainnet due to http calls only going to etherchain
+app.get("/gtgetmultiblock",function(req,renderres){ // this only works for mainnet due to http calls only going to etherchain
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
   console.log("====================\n getmultiblock has been called for \n========================")
