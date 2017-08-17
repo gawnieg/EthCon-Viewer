@@ -167,6 +167,43 @@ app.get('/api/graphviz', function(req, res) {
 });//end of express route
 
 
+
+app.get("/sigmatransaction",function(req,res){
+  var transaction = req.query.transaction; // should be one singular transaction
+  console.log("received sigmatransaction request for "+transaction)
+  transaction=transaction.toString();
+  var transArr =[];
+  transArr.push(transaction);
+  find_in_db(transArr,single_sigma_callback,res)
+
+
+})//end of app get sigmatransaction
+
+var single_sigma_callback = function(transArr,found_trans,res){
+  //find in db will either find an empty db or the transaction
+  var response_sigma=[];
+  if(found_trans.length==0){//there was nothing found
+    res.send("refresh shortly")
+    graph_gen_for_contract.gen_graph_promise(transArr)//this function takes an array
+  }
+  else{
+    //now combine, remember there many be more than one since a transaction has several depth levels
+    var multiobj = generateSigmaCombinedObject(found_trans) //think problem here! with a jump edge or something
+    res.render("sigmamulti.ejs",{
+      num_block:"10000", //dummy values so we can use sigmamulti template
+      block_num:"100",
+      sigmaobj_multi:multiobj
+    })
+  }
+}
+
+
+
+
+
+
+
+
 app.get('/api/sigma', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
@@ -415,12 +452,11 @@ function generateRandomColours(){
 function add_blocks_graph_to_db(block_num,num_block){
   graph_gen.gen_graph_promise(block_num,num_block).then(function(res){
     console.log("promise finished");
-    console.log("result is "+ res);
   })
 }
 
 
-app.get("/contract",function(req,res){ //graph -tools per contract - working and good!
+app.get("/contract",function(req,res){ //graph -tools per contract over a particular num blocks - start to end- working and good!
 
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
@@ -524,6 +560,10 @@ var callback = function(contractTransList,found_trans,res){
 }
 
 function find_in_db(contractTransList,callback,res){
+  /*
+    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
+    it places them in a list. Then callback is then called!
+  */
   console.log("find in db called with "+contractTransList)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
@@ -547,14 +587,12 @@ function find_in_db(contractTransList,callback,res){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-app.get("/transaction",function(req,res){
+app.get("/gttransaction",function(req,res){ //gets the graph-tools representation for one transaction
 
   var transaction = req.query.transaction;
   transaction=transaction.toString()
-    console.log("transaction called for "+transaction)
   var transArr = [];
   transArr.push(transaction);
-      console.log("transArr called for "+transArr)
   find_in_db(transArr,callback,res);
 })
 
@@ -653,20 +691,17 @@ app.get("/getmultiblock",function(req,renderres){ // this only works for mainnet
   for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
     block_list.push(b);
   }
-  if(testORmain=="test"){
+  if(testORmain=="test"){ // if it is the testnet that is running, then we have to get transactions from web3
     block_list.forEach(function(each){
-      var transperblock=getTransactionsFromBlock(each);
+      var transperblock=getTransactionsFromBlock(each);//function call to web3.eth.getBlock
       transperblock.forEach(function(trans){
         transHashList.push(trans)
       })
     })
-    console.log("testnet is in operation so found through web3 call"+transHashList)
   }
-  else{
+  else{ //otherwise its the mainnet
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
   }
-
-
   //for request
   function httpGet(url, callback) {
     const options = {
@@ -684,7 +719,6 @@ app.get("/getmultiblock",function(req,renderres){ // this only works for mainnet
     var urls =[];
     block_list.forEach(function(bn){
       var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
-      console.log("pushing "+eachURL)
       urls.push(eachURL);
     })
     return urls;

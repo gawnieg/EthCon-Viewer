@@ -532,10 +532,11 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
 
 
   }
-  console.log("printing subgraphEdges");
-  linkSubGraphs.forEach(function(each){
-    console.log(JSON.stringify(each))
-  })
+  
+  // console.log("printing subgraphEdges");
+  // linkSubGraphs.forEach(function(each){
+  //   console.log(JSON.stringify(each))
+  // })
   // console.log("printing debugarray");
   // console.log(JSON.stringify(debugarray))
 
