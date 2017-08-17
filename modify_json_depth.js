@@ -222,7 +222,7 @@ function find_add_remove_nums(opcode){
     var r= {c: 7, p:1,colour:145,hexcolour:"#0000b3"}
     break
     case "RETURN"://system ops
-    var r= {c: 2, p:0,colour:97,hexcolour:"#99ff66"}
+    var r= {c: 2, p:0,colour:97,hexcolour:"#800000"}
     break
     case "DELEGATECALL"://system ops
     var r= {c: 6, p:1,colour:97,hexcolour:"#0000b3"}
@@ -532,7 +532,7 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
 
 
   }
-  
+
   // console.log("printing subgraphEdges");
   // linkSubGraphs.forEach(function(each){
   //   console.log(JSON.stringify(each))

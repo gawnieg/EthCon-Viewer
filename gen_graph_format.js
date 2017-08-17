@@ -127,7 +127,7 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
 
     //if the colour for the particular opcode is not defined then do:
     if(typeof(logs[x].colour)!==undefined){
-      returnObj.res_str=returnObj.res_str.concat(logs[x].step," [label=\"",logs[x].op,"\", style=filled, color=",color_string,"]",newline);
+      returnObj.res_str=returnObj.res_str.concat(logs[x].step," [label=\"",logs[x].op,"\", style=filled, color=\"",color_string_sigma,"\"]",newline);
       //modifed graph tools format
       returnObj.res_str_dot_no_lbl=returnObj.res_str_dot_no_lbl.concat(logs[x].step,newline);
       //graphml format
