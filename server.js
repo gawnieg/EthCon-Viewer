@@ -112,6 +112,65 @@ app.get('/vis', function(req, res) {
 
 });//end of express route
 
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+                            //new route for graphviz
+/////////////////////////////////////////////////////////////////////////////////
+app.get("/graphviztransaction",function(req,res){
+  var transaction = (req.query.transaction).toString()
+  console.log("#######################    GraphViz called for "+ transaction);
+  var transArr=[];
+  transArr.push(transaction);
+  find_in_db(transArr,graphvizCallback,res)
+})
+
+var graphvizCallback = function(contractTransList,found_trans,res){
+  console.log("graphvizCallback called")
+  var found_trans_list=[];
+  found_trans.forEach(function(trans){//get transactions number from each object found
+    found_trans_list.push(trans.transaction_no);
+  })
+  console.log("Callback: there were: "+found_trans.length + "items found in the db");
+  console.log("Callback: we need a min of "+contractTransList.length+" items..")
+  Array.prototype.diff = function(a){
+    return this.filter(function(i){
+      return a.indexOf(i)<0;
+    });
+  };
+  var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
+  if(needToFindTrans.length){ //if there are ones that need to be generated
+    console.log("Callback: need to carry out graph gen for these: ");
+    //printing nicely
+    needToFindTrans.forEach(function(each){
+      console.log(each)
+    })
+    graph_gen_for_contract.gen_graph_promise(needToFindTrans)
+  }
+  else{ // found items in db, now display them
+    var response_graphviz = []; // to store results
+    found_trans.forEach(function(index){
+      var dotFormat = index.graph;
+      console.log(dotFormat)
+      dotFormat=dotFormat.toString()
+      response_graphviz.push(dotFormat);
+    })
+    //now render to screen
+    console.log("rendering screen ejs")
+    res.render("viz.ejs",{
+      block_num:"1000",
+      num_block:"10",
+      graph_formats: response_graphviz
+    });
+  }
+}
+////////////////////////////////////////////////////////////////////////////////
+                                  // end of graphviz route
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 // for Viz library - difference in what view it renders
 app.get('/graphviz', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
@@ -164,12 +223,13 @@ app.get('/graphviz', function(req, res) {
   .fail(function(err) {console.log(err)});
 }//end of for loop
 
-});//end of express route
+});//end of express graphviz route
 
 
 
 app.get("/sigmatransaction",function(req,res){
   var transaction = req.query.transaction; // should be one singular transaction
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  sigmatransaction request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("received sigmatransaction request for "+transaction)
   transaction=transaction.toString();
   var transArr =[];
@@ -210,7 +270,6 @@ app.get('/sigmamult', function(req, res) {
   for(var b = parseInt(block_num); b < upper_block_limit; b++){
       reqBlockArray.push(b.toString())
   }
-  console.log("reqBlockArray lenght is :"+reqBlockArray.length)
     mp.MongoClient.connect(url)
       .then(function(db){
               return db.collection('test')
@@ -275,14 +334,14 @@ var sigmaMultiCallback = function(foundDB, reqBlockArray){
 
 function generateSigmaCombinedObject(items){
   /*
-    this function takes all the sigmaobj returned from the database and coalates them into one multiobj
-    which can be passed to the sigma library
+    this function takes all the items returned from the database and coalates them into one multiobj
+    which can be passed to the sigma library on the front end
   */
   var multiobj={//object to store coagulated results
     nodes:[],
     edges:[]
   };
-  //NOTE some ID's are missing since JUMPDEST is missing. must take different approach to lenght
+  //NOTE since some ID's are missing since JUMPDEST is missing. must take different approach to lenght
   // to avoid conflict on naming id's
   var realLenghtOfNodes=[];
   for(var rl=0;rl<items.length;rl++){
@@ -302,17 +361,16 @@ function generateSigmaCombinedObject(items){
   }
   // console.log("legnth of first array is "+items[0].sigmaobj.nodes.length)
   console.log("realLenghtOfNodes is :"+realLenghtOfNodes)
-  //add one to all of realLenghtOfNodes
+  //add one to all of realLenghtOfNodes so that none are the same
   for(var p1=0;p1<realLenghtOfNodes.length;p1++){
     realLenghtOfNodes[p1]=  realLenghtOfNodes[p1]+1;
   }
-
-
+  //now for each item passed, put into multiobj with appropraite index
   for(var i=0;i<items.length;i++){
     //find max value in each r_sigma
     if(items[i].sigmaobj!=null){
       var r_sigma = items[i].sigmaobj; // no toString needed since this is an object
-      //for first block just copy over each object
+      //for first block just copy over each object to multiobj
       if(i==0){
         for(var i_nodes=0;i_nodes<r_sigma.nodes.length;i_nodes++){
           var tempnodeobj = r_sigma.nodes[i_nodes];
@@ -325,13 +383,10 @@ function generateSigmaCombinedObject(items){
       }
       //if second, third fourth,... need to add offset index to each
       if(i>0){
-        //add length to nodes
+        //add offset length to nodes
         var additional_length_node=0; //this is the offset
         for(var ii=0;ii<i;ii++){ // for the remaining items found in the db
-        //  console.log("=items[ii].sigmaobj.nodes.length" +items[ii].sigmaobj.nodes.length)
-          // additional_length_node+=items[ii].sigmaobj.nodes.length; // add up all the lenghts of previous and add on. note index i
-          // console.log("adding "+realLenghtOfNodes[ii])
-          additional_length_node+=realLenghtOfNodes[ii]
+          additional_length_node+=realLenghtOfNodes[ii] // for each of the ones done so far, add onto
         }
         // console.log("additional_length_node on i: "+i+" is "+additional_length_node);
         for(var iii=0; iii<r_sigma.nodes.length;iii++){
@@ -345,9 +400,6 @@ function generateSigmaCombinedObject(items){
           //set colour of each contract differently
           var oldcolor=r_sigma.nodes[iii].color;
           var oldsize = r_sigma.nodes[iii].size;
-
-
-
           multiobj.nodes.push({id: (newnodeid.toString()), x:oldx, y:oldy,label:oldlabel,color:oldcolor,size:oldsize});
         }
         //setting random colours
@@ -378,6 +430,7 @@ function generateSigmaCombinedObject(items){
   }
   return multiobj;
 }
+
 function generateRandomColours(){
   var rgb1= Math.floor(Math.random()*(255));
   var rgb2= Math.floor(Math.random()*(255));
@@ -394,15 +447,18 @@ function add_blocks_graph_to_db(block_num,num_block){
 }
 
 
-app.get("/gtcontract",function(req,res){ //graph -tools per contract over a particular num blocks - start to end- working and good!
+app.get("/gtcontract",function(req,res){
+  //graph -tools per contract over a particular num blocks - start to end- working and good!
+  // testnet: http://localhost:3005/gtcontract?contract=0x45fcd0d6abfa60031e1cf4148780c227ecb0b531&start=1281186&end=1285969
+  // mainnet: http://localhost:3005/gtcontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3934565&end=3966824
 
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
   var _startBlock = parseInt(req.query.start);
   var _endBlock = parseInt(req.query.end);
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  gtcontract request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  // var contractTransList = transfinder.getTransactionsByAccount(viewContract.toString(),startBlock,endBlock)
-  if(testORmain=="test"){
+  if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
     var etherscanAPIURL = "http://ropsten.etherscan.io/api"
   }
   else{
@@ -422,17 +478,17 @@ app.get("/gtcontract",function(req,res){ //graph -tools per contract over a part
       sort:"asc",
       apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
     },
-    json: true
+    json: true //essential to getting a usebale result!
   }
   rp(options)
     .then(function (response) {
       // Request was successful, use the response object at will
-      // console.log(JSON.stringify(response))
       var etherscanResponse = response.result;
       var status = response.status;
-      console.log("status"+status)
-      if(status){
-        var contractTransList =[];
+      console.log("Etherscan status: "+status)
+      if(status!=0){// if the status is equal to one
+        var contractTransList =[]; // this is the list of transactions that need to be found,
+        // given the contract, the starting block and the end block
         etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
           contractTransList.push(trans.hash)
         })
@@ -440,10 +496,11 @@ app.get("/gtcontract",function(req,res){ //graph -tools per contract over a part
         contractTransList.forEach(function(each){
           console.log(each)
         })
-        find_in_db(contractTransList,callback,res);
+        find_in_db(contractTransList,callback,res); // seach for contractTransList in DB, then find_in_db will call callback
       }
-      else{
+      else{// the status was zero!
         console.log("SERVER ERROR!!! CANNOT CONNECT TO ETHERSCAN")
+        res.send("Error: Etherscan status is 0!!!")
       }
     })
     .catch(function (err) {
@@ -457,6 +514,12 @@ app.get("/gtcontract",function(req,res){ //graph -tools per contract over a part
 
 
 var callback = function(contractTransList,found_trans,res){
+  /*
+    This function is used by many routes. It is typically called after find_in_db(),
+    found_trans is an array of the items returned from mongodb
+    contractTransList is the list of transactions that are requested from the brower
+    res is the express response
+  */
   var found_trans_list=[];
   found_trans.forEach(function(trans){//get transactions number from each object found
     found_trans_list.push(trans.transaction_no);
@@ -480,6 +543,7 @@ var callback = function(contractTransList,found_trans,res){
   //if all the pictures are in the db
   else{
     //get pictures random string names
+    //randomHash is actually the name of the pciture in public/pics
     var picsToView = [];
     found_trans.forEach(function(index){
       picsToView.push(index.randomHash);
@@ -493,8 +557,6 @@ var callback = function(contractTransList,found_trans,res){
       picsToView:picsToView
     });
   }
-
-
 }
 
 function find_in_db(contractTransList,callback,res){
@@ -502,7 +564,7 @@ function find_in_db(contractTransList,callback,res){
     find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
     it places them in a list. Then callback is then called!
   */
-  console.log("find in db called with "+contractTransList)
+  // console.log("find in db called with "+contractTransList)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
               return db.collection('test')
