@@ -742,6 +742,21 @@ app.get("/gtgetmultiblock",function(req,renderres){ // this only works for mainn
   });
 });//end of route
 
+app.get("/gtdisplayall",function(req,res){ // route that finds all the file names in public pics. could be useful for presentation
+  console.log("request to view all static images")
+  var lookuppath = "./public/pics"
+  fs.readdir(lookuppath, function(err, items) {
+      var picArr = items;
+      console.log("found "+picArr.length + " images");
+      res.render("gtdisplayall.ejs",{
+        picArr:picArr
+      })
+  });
+})
+
+
+
+
 
 app.listen(3005, function () {
   console.log('Example app listening on port 3001!')
