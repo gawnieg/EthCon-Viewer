@@ -452,7 +452,6 @@ function add_blocks_graph_to_db(block_num,num_block){
 //                Sigma js contract view
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-
 app.get("/sigmacontract",function(req,res){
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
@@ -460,65 +459,14 @@ app.get("/sigmacontract",function(req,res){
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Sigma contract view request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
-    var etherscanAPIURL = "http://ropsten.etherscan.io/api"
-  }
-  else{
-    var etherscanAPIURL = 'http://api.etherscan.io/api';
-  }
-  console.log("etherscanAPIURL is "+etherscanAPIURL);
-  const options = {
-    method: 'GET',
-    uri: etherscanAPIURL,
-    qs:{
-      module:"account",
-      action:"txlist",
-      address:viewContract,
-      startblock:_startBlock,
-      endblock:_endBlock,
-      sort:"asc",
-      apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
-    },
-    json: true //essential to getting a usebale result!
-  }
-  rp(options)
-    .then(function (response) {
-      // Request was successful, use the response object at will
-      var etherscanResponse = response.result;
-      var status = response.status;
-      console.log("Etherscan status: "+status)
-      if(status!=0){// if the status is equal to one
-        var contractTransList =[]; // this is the list of transactions that need to be found,
-        // given the contract, the starting block and the end block
-        etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
-          contractTransList.push(trans.hash)
-        })
-        console.log("contractTransList is :")
-        contractTransList.forEach(function(each){
-          console.log(each)
-        })
-        find_in_db(contractTransList,sigmacontractCallback,res); // seach for contractTransList in DB, then find_in_db will call callback
-      }
-      else{// the status was zero!
-        console.log("SERVER ERROR!!! CANNOT CONNECT TO ETHERSCAN")
-        res.send("Error: Etherscan status is 0!!!")
-      }
-    })
-    .catch(function (err) {
-      // Something bad happened, handle the error
-      console.log("SERVER ERROR: "+err)
-    })
-
-
-// if want to use lookupEtherscan this is the way or something similar
-// var contractTransList= lookupEtherscan(viewContract,_startBlock,_endBlock);
-// console.log("contractTransList "+contractTransList)
-// find_in_db(contractTransList);
-
-
-
-
-})//end of route
+  lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
+    if(err){
+      console.log("there was an error with etherscan api lookup")
+      res.send("etherscan error!!")
+    }
+    find_in_db(contractTransList,sigmacontractCallback,res);
+  })
+})
 
 var sigmacontractCallback = function(contractTransList,found_trans,res){ // called from find_in_db
   var found_trans_list=[];
@@ -535,8 +483,7 @@ var sigmacontractCallback = function(contractTransList,found_trans,res){ // call
   var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
   if(needToFindTrans.length){ //if there are ones that need to be generated
     console.log("Callback: need to carry out graph gen for these: ");
-    //printing nicely
-    needToFindTrans.forEach(function(each){
+    needToFindTrans.forEach(function(each){    //printing nicely
       console.log(each)
     })
     graph_gen_per_transaction.gen_graph_promise(needToFindTrans)
@@ -553,54 +500,66 @@ var sigmacontractCallback = function(contractTransList,found_trans,res){ // call
     }
 }
 
-function lookupEtherscan(viewContract,_startBlock,_endBlock){
-  if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
-    var etherscanAPIURL = "http://ropsten.etherscan.io/api"
-  }
-  else{
-    var etherscanAPIURL = 'http://api.etherscan.io/api';
-  }
-  console.log("etherscanAPIURL is "+etherscanAPIURL);
-  const options = {
-    method: 'GET',
-    uri: etherscanAPIURL,
-    qs:{
-      module:"account",
-      action:"txlist",
-      address:viewContract,
-      startblock:_startBlock,
-      endblock:_endBlock,
-      sort:"asc",
-      apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
-    },
-    json: true //essential to getting a usebale result!
-  }
-  rp(options)
-    .then(function (response) {
-      // Request was successful, use the response object at will
-      var etherscanResponse = response.result;
-      var status = response.status;
-      console.log("Etherscan status: "+status)
-      if(status!=0){// if the status is equal to one
-        var contractTransList =[]; // this is the list of transactions that need to be found,
-        // given the contract, the starting block and the end block
-        etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
-          contractTransList.push(trans.hash)
-        })
-        console.log("contractTransList is :")
-        contractTransList.forEach(function(each){
-          console.log(each)
-        })
-        return contractTransList;
-      }
-      else{// the status was zero!
-        return 0;
-      }
-    })
-    .catch(function (err) {
-      // Something bad happened, handle the error
-      console.log("SERVER ERROR: "+err)
-    })
+
+
+
+
+var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
+  /*
+    takes in the contract address, the start block and the end block and
+    returns an array of the transactions that the contract was involved within
+    those blocks
+    function used by /sigmacontract, /gtcontract
+  */
+  return new Promise(function(resolve,reject){
+    if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
+      var etherscanAPIURL = "http://ropsten.etherscan.io/api"
+    }
+    else{
+      var etherscanAPIURL = 'http://api.etherscan.io/api';
+    }
+    console.log("etherscanAPIURL is "+etherscanAPIURL);
+    const options = {
+      method: 'GET',
+      uri: etherscanAPIURL,
+      qs:{
+        module:"account",
+        action:"txlist",
+        address:viewContract,
+        startblock:_startBlock,
+        endblock:_endBlock,
+        sort:"asc",
+        apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
+      },
+      json: true //essential to getting a usebale result!
+    }
+    rp(options)
+      .then(function (response) {
+        // Request was successful, use the response object at will
+        var etherscanResponse = response.result;
+        var status = response.status;
+        console.log("Etherscan status: "+status)
+        if(status!=0){// if the status is equal to one
+          var contractTransList =[]; // this is the list of transactions that need to be found,
+          // given the contract, the starting block and the end block
+          etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
+            contractTransList.push(trans.hash)
+          })
+          console.log("contractTransList is :")
+          contractTransList.forEach(function(each){
+            console.log(each)
+          })
+          resolve(contractTransList);
+        }
+        else{// the status was zero!
+          reject([]) //returns an empty array!
+        }
+      })
+      .catch(function (err) {
+        // Something bad happened, handle the error
+        console.log("SERVER ERROR: "+err)
+      })
+  })
 }
 
 
@@ -615,63 +574,20 @@ app.get("/gtcontract",function(req,res){
   //graph -tools per contract over a particular num blocks - start to end- working and good!
   // testnet: http://localhost:3005/gtcontract?contract=0x45fcd0d6abfa60031e1cf4148780c227ecb0b531&start=1281186&end=1285969
   // mainnet: http://localhost:3005/gtcontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3934565&end=3966824
-
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
   var _startBlock = parseInt(req.query.start);
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  gtcontract request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
-    var etherscanAPIURL = "http://ropsten.etherscan.io/api"
-  }
-  else{
-    var etherscanAPIURL = 'http://api.etherscan.io/api';
-  }
-  console.log("etherscanAPIURL is "+etherscanAPIURL);
 
-  const options = {
-    method: 'GET',
-    uri: etherscanAPIURL,
-    qs:{
-      module:"account",
-      action:"txlist",
-      address:viewContract,
-      startblock:_startBlock,
-      endblock:_endBlock,
-      sort:"asc",
-      apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
-    },
-    json: true //essential to getting a usebale result!
-  }
-  rp(options)
-    .then(function (response) {
-      // Request was successful, use the response object at will
-      var etherscanResponse = response.result;
-      var status = response.status;
-      console.log("Etherscan status: "+status)
-      if(status!=0){// if the status is equal to one
-        var contractTransList =[]; // this is the list of transactions that need to be found,
-        // given the contract, the starting block and the end block
-        etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
-          contractTransList.push(trans.hash)
-        })
-        console.log("contractTransList is :")
-        contractTransList.forEach(function(each){
-          console.log(each)
-        })
-        find_in_db(contractTransList,callback,res); // seach for contractTransList in DB, then find_in_db will call callback
-      }
-      else{// the status was zero!
-        console.log("SERVER ERROR!!! CANNOT CONNECT TO ETHERSCAN")
-        res.send("Error: Etherscan status is 0!!!")
-      }
-    })
-    .catch(function (err) {
-      // Something bad happened, handle the error
-      console.log("SERVER ERROR: "+err)
-    })
-
+  lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
+    if(err){
+      console.log("there was an error with etherscan api lookup")
+      res.send("etherscan error!!")
+    }
+    find_in_db(contractTransList,callback,res);
+  })
 })
 
 
