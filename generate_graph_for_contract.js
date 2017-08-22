@@ -67,7 +67,14 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
           var SINGLE_NODES_OFF = 1;//if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
           //this seperates the structLogs into their own files according to depth. Depth ==11 does not mean 11 stack files!
           //will be more than 11 array entries for depth ==11 but not definite
-          var TwoDarrayWithDepths= sortDepth(orig_steps); //refactored so that this sorting into depths is done in a seperate function
+          var TwoDarrayWithDepths = null;
+          try{
+            TwoDarrayWithDepths= sortDepth(orig_steps); //refactored so that this sorting into depths is done in a seperate function
+          }
+          catch(err){
+            console.log("error in sorting depth: "+err)
+            TwoDarrayWithDepths = null;
+          }
 
           //now depth sorter is finished
           //now find which arrays are populated and get rid of the excess
@@ -100,7 +107,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
               TwoDarraymodified[depth]=mod_json.modify_diff_depth(TwoDarrayWithDepths[depth]); //Modifying JSON!!!
             }
             catch(err){
-              console.log("huge error: "+err)
+              console.log("error modifying json: "+err)
             }
             //create checklist that will elimminate singular nodes
              TwoDChecklist = isolateSingleNodes(TwoDarraymodified,TwoDChecklist,depth);
@@ -115,7 +122,17 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
           var allLabelsPerTrans=[];
           for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
 
-            var format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist); //seperate function to loop throuhg and generate formats
+            var format;
+            try{
+              format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist); //seperate function to loop throuhg and generate formats
+            }
+            catch(err){
+              console.log("error generating graph format!")
+              db2.save_trans_to_db(contracts_trans_list[int_trans],
+                null,null,null,null,null,null,null,null,null); //passing block number, transaction_no, graph output
+              continue;
+            }
+
             //FOR DEBUGGIN!!!
             var lengthOfNodes = format.sigmaobj.nodes.length;//for debugging
             var lengthOfColours = format.graphtools_color.length;
@@ -154,7 +171,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
 
               // console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
               // console.log(graphtools_color)
-
+              // console.log(graphtools_label)
 
           } //end of for each depth loop
           //call one python graph tools child_process per transaction! it will take care of the depths itself!

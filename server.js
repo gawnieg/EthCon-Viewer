@@ -569,7 +569,7 @@ function find_in_db(contractTransList,callback,res){
       .then(function(db){
               return db.collection('test')
                   .then(function(col) {
-                      return col.find({transaction_no : {$in: contractTransList}}).toArray()
+                      return col.find({transaction_no : {$in: contractTransList}}).sort({depthLevel:1,transaction_no:1}).toArray()
                           .then(function(items) {
                               console.log("db replied with "+items.length + "items")
                               var found_trans =[]
