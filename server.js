@@ -733,7 +733,7 @@ function find_in_db(contractTransList,callback,res){
     find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
     it places them in a list. Then callback is then called!
   */
-  console.log("find in db called with "+contractTransList)
+  // console.log("find in db called with "+contractTransList)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
               return db.collection('test')
