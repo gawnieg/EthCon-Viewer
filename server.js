@@ -548,19 +548,21 @@ var callback = function(contractTransList,found_trans,res){
     found_trans.forEach(function(index){
       picsToView.push(index.randomHash);
     })
+    function uniq(a) {
+       return Array.from(new Set(a));
+    }
+
     //now render to screen
+    picsToView = uniq(picsToView) //get rid of duplicates happening
     console.log("picsToView: ")
     picsToView.forEach(function(each){
       console.log(each)
     })
 
-    function uniq(a) {
-       return Array.from(new Set(a));
-    }
 
 
     res.render("contractView.ejs",{
-      picsToView:uniq(picsToView)
+      picsToView:picsToView
     });
   }
 }
