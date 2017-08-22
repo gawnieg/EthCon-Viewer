@@ -553,8 +553,14 @@ var callback = function(contractTransList,found_trans,res){
     picsToView.forEach(function(each){
       console.log(each)
     })
+
+    function uniq(a) {
+       return Array.from(new Set(a));
+    }
+
+
     res.render("contractView.ejs",{
-      picsToView:picsToView
+      picsToView:uniq(picsToView)
     });
   }
 }
