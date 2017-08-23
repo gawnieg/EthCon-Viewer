@@ -5,12 +5,14 @@ const db2 = require("./database2.js")
 var MongoClient = require('mongodb').MongoClient;
 var mp = require('mongodb-promise');
 const fs = require("fs")
+var formidable = require('formidable'); //for file uploads
 const graph_gen_for_contract = require("./generate_graph_for_contract.js")
 const rp = require("request-promise")
 const bodyParser = require("body-parser")
 const async = require('async');
 const request = require('request');
 const graph_gen_per_transaction=require("./generate_graph_per_transaction.js")
+const generate_graph_from_static = require("./generate_graph_from_upload.js")
 var Web3 = require('web3');
 var web3 = new Web3();
 
@@ -838,6 +840,59 @@ app.get("/gtdisplayall",function(req,res){ // route that finds all the file name
       })
   });
 })
+////////////////////////////////////////////////////////////////////////////////////
+
+//                          FILE UPLOAD FACILITY
+
+///////////////////////////////////////////////////////////////////////////////////
+app.get("/uploadfile",function(req,res){ // serve out page to upload file
+  console.log("serving upload page")
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write("upload JSON returned from Geth debug.traceTransaction(hash)")
+  res.write('<form action="fileupload" method="post" enctype="multipart/form-data">');
+  res.write('<input type="file" name="filetoupload"><br>');
+  res.write('<input type="submit">');
+  res.write('</form>');
+  return res.end();
+})
+
+app.post("/fileupload",function(req,res){
+  console.log("file upload route called")
+  var form = new formidable.IncomingForm();
+  form.parse(req, function (err, fields, files) {
+    var oldpath = files.filetoupload.path;
+    console.log("oldpath is "+oldpath)
+    var newpath ="./fileuploads/"+files.filetoupload.name;
+    var transactionHash = files.filetoupload.name;
+    transactionHash=transactionHash.slice(0,transactionHash.length-5) // file must be named transactionHash.json, removing .json
+    console.log("transactionHash is "+transactionHash)
+    console.log("newpath is "+newpath)
+    fs.rename(oldpath, newpath, function (err) {
+      if (err) throw err;
+      console.log("now processing file");
+      try{
+        var static_json = require(newpath); //requiring it
+        console.log("loaded static json for "+transactionHash); // can now use static_json as normally geth gained file
+        generate_graph_from_static.gen_graph_promise(transactionHash,static_json).then(function(picArr,err){
+          console.log("yurt callback")
+          console.log("err is "+ err)
+          console.log("callback res is "+picArr) // this should be an array
+          res.render("fileuploaddisplay.ejs",{
+            picArr:picArr
+          })
+        }) // does this return a promise?
+      }
+      catch(err){
+        console.log("error requiring json "+err)
+        res.write("json format not correct, check and try again!")
+        res.end()
+      }
+    });
+  });
+}) // end of fileupload route
+
+
+
 
 
 

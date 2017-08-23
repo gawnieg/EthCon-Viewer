@@ -17,16 +17,15 @@ Depending on the route selected - graphtools
                                 - graphviz
                                 - sigma
                                 -sigmamult
-a certain format of graph network represending the control flow diagram will display in the browser. 
+a certain format of graph network represending the control flow diagram will display in the browser.
 
-![Alt text](./githubdemographtools.png?raw=true "Graph-Tools representation of one contracts control flow diagram")
+![Alt text](./gitreadmefiles/githubdemographtools.png?raw=true "Graph-Tools representation of one contracts control flow diagram")
 
 
 The following should be noted:
-/sigma will only display the last block requested. 
+/sigma will only display the last block requested.
 
 /vis has a limitation of 30k -45k nodes, depending on structure of the contacts control flow diagram.
 
-/graphtools creates a https://graph-tool.skewed.de/ "graph tools" python library powered static images. 
+/graphtools creates a https://graph-tool.skewed.de/ "graph tools" python library powered static images.
 This should be practically unlimited in terms of number of nodes.
-
