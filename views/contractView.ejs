@@ -2,19 +2,23 @@
 
 
 <body>
-  Contract view!!
+  <h1 style="color:white;"> You are visualising <%=picsToView.length%> EVM execution traces with graph-tool!</h1>
   <body style="background-color:#000000">
   <script>
   var picsToView = <%- JSON.stringify(picsToView)%>
   console.log("picsToView:"+picsToView)
 
-  picsToView.forEach(function(pic){
+  picsToView.forEach(function(pic,i){
+    if(pic == null){
+      return;
+    }
     var x = document.createElement("IMG");
     var picpath="/pics/"
     picpath = picpath.concat(pic,".png");
     x.setAttribute("src", picpath);
     x.setAttribute("title",picpath)
     x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+    document.body.innerHTML += "<h1 style=\"color:white\";>"+picsToView[i]+"</h1>"
     document.body.appendChild(x);
   })
 

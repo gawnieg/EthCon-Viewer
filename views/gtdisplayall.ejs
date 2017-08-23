@@ -4,6 +4,7 @@
 
 <body>
 <body style="background-color:#000000">
+<h1 style="color:white;"> You are visualising <%=picArr.length%> EVM execution traces with graph-tool!</h1>
 </body>
 
 <script>
@@ -18,6 +19,7 @@ for(var blockd=0;blockd<picArr.length;blockd++){
     var x = document.createElement("IMG");
     x.setAttribute("src",  picstring);
     x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+    document.body.innerHTML += "<h1 style=\"color:white\";>"+picArr[blockd]+"</h1>"
     document.body.appendChild(x);
 }
 

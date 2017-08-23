@@ -21,8 +21,9 @@
 </head>
 
 <body>
+  <body style="background-color:#000000">
+    <h1 style="color:white;"> You are visualising <%=transArr.length%> EVM execution traces with Graphviz!</h1>
 
-<h1>Yurt! You have requested to visualise <%=num_block%> blocks starting at <%=block_num %> with Graphviz!</h1>
 
 <br>
 <!-- <h2>Here is the graph format</h2>
@@ -36,9 +37,13 @@
 <script>
 //this is working
 console.log("script loaded")
+
 <% graph_formats.forEach(function(mem,i){%>
     console.log("index is "+<%=i%>);
     var g = <%- JSON.stringify(mem)%>
+    var trans = <%- JSON.stringify(transArr)%>
+    console.log("trans arr is "+trans)
+    document.body.innerHTML += "<h1 style=\"color:white\";>"+trans[<%-i%>]+"</h1>"
     console.log("g is " + g)
     var gcut = g.slice(1,(g.length-3));
     console.log("gcut is " + gcut)

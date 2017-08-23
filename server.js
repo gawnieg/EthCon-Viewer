@@ -153,15 +153,19 @@ var graphvizCallback = function(contractTransList,found_trans,res){
   }
   else{ // found items in db, now display them
     var response_graphviz = []; // to store results
+    var transArr = [];
     found_trans.forEach(function(index){
       var dotFormat = index.graph;
       console.log(dotFormat)
+      transArr.push(index.randomHash)
       dotFormat=dotFormat.toString()
       response_graphviz.push(dotFormat);
     })
     //now render to screen
     console.log("rendering screen ejs")
+    console.log("transArr is "+transArr)
     res.render("viz.ejs",{
+      transArr:transArr,
       block_num:"1000",
       num_block:"10",
       graph_formats: response_graphviz
@@ -252,7 +256,16 @@ var single_sigma_callback = function(transArr,found_trans,res){
   else{
     //now combine, remember there many be more than one since a transaction has several depth levels
     var multiobj = generateSigmaCombinedObject(found_trans) //think problem here! with a jump edge or something
-    res.render("sigmamulti.ejs",{
+    var transArr=[];
+    found_trans.forEach(function(each){
+      transArr.push(each.randomHash)
+    })
+    console.log("transArr "+transArr)
+    var titleTrans=transArr[0].slice(0,transArr.length-3)
+    console.log("titleTrans is "+titleTrans)
+    res.render("sigmasingletransaction.ejs",{
+      titleTrans:titleTrans,
+      transArr:transArr,
       num_block:"10000", //dummy values so we can use sigmamulti template
       block_num:"100",
       sigmaobj_multi:multiobj
@@ -466,11 +479,11 @@ app.get("/sigmacontract",function(req,res){
       console.log("there was an error with etherscan api lookup")
       res.send("etherscan error!!")
     }
-    find_in_db(contractTransList,sigmacontractCallback,res);
+    find_in_db(contractTransList,sigmacontractCallback,res,viewContract,_startBlock,_endBlock);
   })
 })
 
-var sigmacontractCallback = function(contractTransList,found_trans,res){ // called from find_in_db
+var sigmacontractCallback = function(contractTransList,found_trans,res,viewContract,_startBlock,_endBlock){ // called from find_in_db
   var found_trans_list=[];
   found_trans.forEach(function(trans){//get transactions number from each object found
     found_trans_list.push(trans.transaction_no);
@@ -494,9 +507,10 @@ var sigmacontractCallback = function(contractTransList,found_trans,res){ // call
   else{
       console.log("found sufficient items, gonna coagulate now..")
       var multiobj = generateSigmaCombinedObject(found_trans)
-      res.render("sigmamulti.ejs",{ //send dummy values
-        num_block:100,
-        block_num:100,
+      res.render("sigmacontract.ejs",{
+        contract:viewContract,
+        startBlock:_startBlock,
+        endBlock:_endBlock,
         sigmaobj_multi:multiobj
       })
     }
@@ -588,7 +602,7 @@ app.get("/gtcontract",function(req,res){
       console.log("there was an error with etherscan api lookup")
       res.send("etherscan error!!")
     }
-    find_in_db(contractTransList,callback,res);
+    find_in_db(contractTransList,callback,res,viewContract,_startBlock.toString(),_endBlock.toString());
   })
 })
 
@@ -646,7 +660,7 @@ var callback = function(contractTransList,found_trans,res){
   }
 }
 
-function find_in_db(contractTransList,callback,res){
+function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blockNum){
   /*
     find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
     it places them in a list. Then callback is then called!
@@ -664,7 +678,7 @@ function find_in_db(contractTransList,callback,res){
                                 found_trans.push(item);//the whole object
                               })
 
-                              db.close().then(callback(contractTransList,found_trans,res));
+                              db.close().then(callback(contractTransList,found_trans,res,_contractName,_numBlocks,_blockNum));
                           })
               })
   })
@@ -843,6 +857,7 @@ app.get("/gtdisplayall",function(req,res){ // route that finds all the file name
 ////////////////////////////////////////////////////////////////////////////////////
 
 //                          FILE UPLOAD FACILITY
+
 
 ///////////////////////////////////////////////////////////////////////////////////
 app.get("/uploadfile",function(req,res){ // serve out page to upload file
