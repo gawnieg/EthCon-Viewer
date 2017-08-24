@@ -273,6 +273,100 @@ var single_sigma_callback = function(transArr,found_trans,res){
   }
 }
 
+app.get("/sigmamulti",function(req,renderres){
+  var startblock = req.query.startblock;
+  var endblock = req.query.endblock;
+  console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
+  var block_list =[];
+  var transHashList=[];// array to store transaction hashes from each of the blocks!
+  //make list of blocks for which to get the transactions hashes
+  for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
+    block_list.push(b);
+  }
+  if(testORmain=="test"){ // if it is the testnet that is running, then we have to get transactions from web3
+    block_list.forEach(function(each){
+      var transperblock=getTransactionsFromBlock(each);//function call to web3.eth.getBlock
+      transperblock.forEach(function(trans){
+        transHashList.push(trans)
+      })
+    })
+  }
+  else{ //otherwise its the mainnet
+    var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
+  }
+  //for request
+  function httpGet(url, callback) {
+    const options = {
+      url :  url,
+      json : true
+    };
+    request(options,
+      function(err, res, body) {
+        console.log("calling callback")
+        callback(err, body);
+      }
+    );
+  }
+  function constructURLs(block_list){ // function that builds the etherscan lookup urls from the blocknumbers passed
+    var urls =[];
+    block_list.forEach(function(bn){
+      var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
+      urls.push(eachURL);
+    })
+    return urls;
+  }
+
+  async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
+    if (err) return console.log(err);
+    for(var index=0; index<res.length;index++){
+      //now exract data of each
+      var data_array = res[index].data;
+      for(var dataIndex=0; dataIndex<data_array.length;dataIndex++){
+        transHashList.push(data_array[dataIndex].hash.toString());
+      }
+    }
+    console.log("finished http requests")
+    console.log("transHashList is :");
+    transHashList.forEach(function(each){
+      console.log(each)
+    })
+    find_in_db(transHashList,single_sigma_callback,renderres);
+  });
+})
+// var newSigmaCallback=function(contractTransList,found_trans,res){
+//   console.log("newSigmaCallback called!");
+//   var found_trans_list=[];
+//   found_trans.forEach(function(trans){//get transactions number from each object found
+//     found_trans_list.push(trans.transaction_no);
+//   })
+//   console.log("Callback: there were: "+found_trans.length + "items found in the db");
+//   console.log("Callback: we need a min of "+contractTransList.length+" items..")
+//   Array.prototype.diff = function(a){
+//     return this.filter(function(i){
+//       return a.indexOf(i)<0;
+//     });
+//   };
+//   var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
+//   if(needToFindTrans.length){ //if there are ones that need to be generated
+//     console.log("Callback: need to carry out graph gen for these: ");
+//     //printing nicely
+//     needToFindTrans.forEach(function(each){
+//       console.log(each)
+//     })
+//     graph_gen_for_contract.gen_graph_promise(needToFindTrans)
+//   }
+//   else{
+//
+//
+//     res.render("contractView.ejs",{
+//       picsToView:picsToView
+//     });
+//   }
+// }
+
+
+
+
 
 //view all trans from that same block
 app.get('/sigmamult', function(req, res) {
@@ -784,7 +878,7 @@ var getTransactionsFromBlock = function(block){
 app.get("/gtgetmultiblock",function(req,renderres){ // this only works for mainnet due to http calls only going to etherchain
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
-  console.log("====================\n getmultiblock has been called for \n========================")
+  console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
   //Find transaction in all of these blocks
   var block_list =[];
   var transHashList=[];// array to store transaction hashes from each of the blocks!

@@ -85,7 +85,7 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
         var dest_address = trans_info.to;//now get destination address of transaction
         console.log("destination address for trans: "+ temp_trans_list[trans]+ " is " +dest_address);
         if(dest_address != null){ // dest address is null when
-          if(web3.eth.getCode(dest_address)!=0){ // this will tell if there is code at the desitatoin address
+          if(parseInt(trans_info.gas)>21000){ // this will tell if there is code at the desitatoin address
             console.log("INTERNAL TRANS!!!");
             contracts_trans_list.push(temp_trans_list[trans]);
           }
@@ -104,7 +104,7 @@ var gen_graph_prom = function(_passed_block_num,_passed_num_blocks){
     for(var int_trans=0;int_trans<contracts_trans_list.length;int_trans++){
       web3.currentProvider.sendAsync({
         method: "debug_traceTransaction",
-        params: [contracts_trans_list[int_trans],{}], // change this line for an individual contract viz
+        params: [contracts_trans_list[int_trans],{disableStorage: true, disableMemory:true}], // change this line for an individual contract viz
         jsonrpc: "2.0",
         id:"2"},
         function(err,result){
