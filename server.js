@@ -261,7 +261,15 @@ var single_sigma_callback = function(transArr,found_trans,res){
       transArr.push(each.randomHash)
     })
     console.log("transArr "+transArr)
-    var titleTrans=transArr[0].slice(0,transArr.length-3)
+    var titleTrans="";
+    for(var index=0; index < transArr.length;index++){
+      if(transArr[index]!=null){
+        titleTrans=transArr[index].slice(0,transArr.length-3)
+        break;
+      }
+    }
+
+
     console.log("titleTrans is "+titleTrans)
     res.render("sigmasingletransaction.ejs",{
       titleTrans:titleTrans,
