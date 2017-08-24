@@ -268,8 +268,6 @@ var single_sigma_callback = function(transArr,found_trans,res){
         break;
       }
     }
-
-
     console.log("titleTrans is "+titleTrans)
     res.render("sigmasingletransaction.ejs",{
       titleTrans:titleTrans,
@@ -1012,6 +1010,47 @@ app.post("/fileupload",function(req,res){
 }) // end of fileupload route
 
 
+/////////////////////////////////////////////////////////////////////////////////////
+
+//                              per random hash , per a specified depth 0x123...._4
+// for further investigation of that crazy transsaction!
+
+/////
+
+app.get("/depthoftransaction",function(req,res){
+  var transaction = req.query.transaction;
+  transaction=transaction.toString()
+  console.log("depth of transsaction called for "+transaction)
+  var depthTransArr =[];
+  depthTransArr.push(transaction)
+  find_depth_in_db(depthTransArr,single_sigma_callback,res)
+
+})
+
+function find_depth_in_db(contractTransList,callback,res){
+  /*
+    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
+    it places them in a list. Then callback is then called!
+  */
+  // console.log("find in db called with "+contractTransList)
+  mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
+      .then(function(db){
+              return db.collection('test')
+                  .then(function(col) {
+                      return col.find({randomHash : {$in: contractTransList}}).sort({transaction_no:1,depthLevel:1}).toArray()
+                          .then(function(items) {
+                              console.log("db replied with "+items.length + "items")
+                              var found_trans =[]
+                              items.forEach(function(item){
+                                found_trans.push(item);//the whole object
+                              })
+
+                              db.close().then(callback(contractTransList,found_trans,res));
+                          })
+              })
+  })
+  .fail(function(err) {console.log(err)});
+}
 
 
 
