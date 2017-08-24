@@ -18,6 +18,40 @@
     console.log("trans_list:" + trans_list)
     // var  <%- JSON.stringify(block_num)%>
 
+    var picArr = trans_list;
+    for(var blockd =0; blockd < picArr.length;blockd++){
+      if(picArr[blockd]==null){
+        continue;
+      }
+      console.log("looking for pic: " + picArr[blockd])
+      var picstring= "/pics/";
+      picstring=picstring.concat(picArr[blockd])
+      var figure = document.createElement("FIGURE") //first generate figure
+      figure.setAttribute("id",picArr[blockd]) // set figure id
+      var x = document.createElement("IMG");//create image
+      x.setAttribute("src",  picstring);
+      x.setAttribute("id",picstring)
+      x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+      figure.appendChild(x) //image goes inside the figure
+      document.body.appendChild(figure);
+      var caption = document.createElement("FIGCAPTION"); //create figure caption
+      var text = document.createTextNode(picArr[blockd]) //creat text
+      caption.setAttribute("style","color:white")
+      caption.style.fontSize="50px"
+      caption.appendChild(text) // text goes inside figure caption
+      var y = document.getElementById(picArr[blockd])
+      y.appendChild(caption) //caption goes inside figure
+    }
+
+
+
+
+
+
+
+
+
+/*
     var high_limit = parseInt(block_num) + parseInt(num_block)
 
     for (blockd = parseInt(block_num); blockd < high_limit; blockd++) {
@@ -54,7 +88,7 @@
 
         x.addEventListener("load", function() { // this is not working as it is pumping out the title of the pic when it loads!
           var el_span = document.createElement('span');
-          el_span.setAttribute('style', 'color: red'); /*just an example, your styles set here*/
+          el_span.setAttribute('style', 'color: red');
           var textcontents = titlestring.toString() + "\n"
           var textNode = document.createTextNode(titlestring.toString());
 
@@ -70,6 +104,8 @@
 
       }
     }
+
+    */
   </script>
 
 

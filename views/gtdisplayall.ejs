@@ -5,6 +5,18 @@
 <body>
 <body style="background-color:#000000">
 <h1 style="color:white;"> You are visualising <%=picArr.length%> EVM execution traces with graph-tool!</h1>
+<style>
+figure{
+  display: inline-grid;
+}
+figure figurecaption{
+  text-align: center;
+}
+figure img {
+    vertical-align: top;
+}
+</style>
+
 </body>
 
 <script>
@@ -12,16 +24,29 @@ var picArr = <%- JSON.stringify(picArr)%>
 console.log("picArr:"+picArr)
 
 for(var blockd=0;blockd<picArr.length;blockd++){
-
+    if(picArr[blockd]==null){
+      continue;
+    }
     console.log("looking for pic: " + picArr[blockd])
     var picstring= "/pics/";
     picstring=picstring.concat(picArr[blockd])
-    var x = document.createElement("IMG");
+    var figure = document.createElement("FIGURE") //first generate figure
+    figure.setAttribute("id",picArr[blockd]) // set figure id
+    var x = document.createElement("IMG");//create image
     x.setAttribute("src",  picstring);
+    x.setAttribute("id",picstring)
     x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
-    document.body.innerHTML += "<h1 style=\"color:white\";>"+picArr[blockd]+"</h1>"
-    document.body.appendChild(x);
+    figure.appendChild(x) //image goes inside the figure
+    document.body.appendChild(figure);
+    var caption = document.createElement("FIGCAPTION"); //create figure caption
+    var text = document.createTextNode(picArr[blockd]) //creat text
+    caption.setAttribute("style","color:white")
+    caption.style.fontSize="50px"
+    caption.appendChild(text) // text goes inside figure caption
+    var y = document.getElementById(picArr[blockd])
+    y.appendChild(caption) //caption goes inside figure
 }
+
 
 </script>
 

@@ -694,7 +694,7 @@ app.get("/gttransaction",function(req,res){ //gets the graph-tools representatio
   transaction=transaction.toString()
   var transArr = [];
   transArr.push(transaction);
-  find_in_db(transArr,callback,res);
+  find_in_db(transArr,callback,res); //uses contractView to render
 })
 
 
@@ -862,6 +862,8 @@ app.get("/gtdisplayall",function(req,res){ // route that finds all the file name
 ///////////////////////////////////////////////////////////////////////////////////
 app.get("/uploadfile",function(req,res){ // serve out page to upload file
   console.log("serving upload page")
+  res.render("uploadfile.ejs")
+  /*
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write("upload JSON returned from Geth debug.traceTransaction(hash)")
   res.write('<form action="fileupload" method="post" enctype="multipart/form-data">');
@@ -869,6 +871,8 @@ app.get("/uploadfile",function(req,res){ // serve out page to upload file
   res.write('<input type="submit">');
   res.write('</form>');
   return res.end();
+  */
+
 })
 
 app.post("/fileupload",function(req,res){
@@ -889,7 +893,6 @@ app.post("/fileupload",function(req,res){
         var static_json = require(newpath); //requiring it
         console.log("loaded static json for "+transactionHash); // can now use static_json as normally geth gained file
         generate_graph_from_static.gen_graph_promise(transactionHash,static_json).then(function(picArr,err){
-          console.log("yurt callback")
           console.log("err is "+ err)
           console.log("callback res is "+picArr) // this should be an array
           res.render("fileuploaddisplay.ejs",{

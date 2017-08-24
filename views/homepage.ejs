@@ -1,4 +1,8 @@
 <html>
+<head>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+</head>
 <style>
 img {
 
@@ -20,6 +24,7 @@ style:"font-size:1.2em"
 
 <body style="background-color:#000000">
 <body link ="color:white">
+<div class="jumbotron" style="background-color:black" id = "mainjumbo">
 <a style="color:white">
 
 <img src="ethconviewerlogo.jpg">
@@ -29,47 +34,64 @@ Welcome to EthCon Viewer!!
 You can visualise Ethereum contacts execution  on the Ethereum Virtual Machine on a per-block or per-contract basis:
 <br>
 <br>
-<a style="font-size:1.5em" href="/sigmamult?block_num=3900005&num_block=1">SigmaJS visualisation of block 3,900,005 mainnet</a>
+<h1> Testnet </h1>
+
+<a style="font-size:1.5em" href="/graphviztransaction?transaction=0x83d0bb14283bc6cc513e22afa49e4ad38525e72283067861dc2b0567342e0bd2">
+  GraphViz visualisation of a transaction that has two graphs! testnet</a>
 <br>
+<a style="font-size:1.5em" href="/graphviztransaction?transaction=0xdbe8080d8c8c4afc6ccfb3b87d645e1af51581ee82cc8cacd21e0a15648fe2e3">
+  GraphViz visualisation of test loop</a>
+  <br>
+<a style="font-size:1.5em" href="/sigmamult?block_num=1502870&num_block=3">
+  SigmaJS visualisation of block 1,502,870 to 1,502,873 testnet</a>
 <br>
-<a style="font-size:1.5em" href="/sigmamult?block_num=1502870&num_block=3">SigmaJS visualisation of block 1,502,870 to 1,502,873 testnet</a>
+<a style="font-size:1.5em" href="/sigmamult?block_num=1281279&num_block=1">
+  SigmaJS visualisation of block 1,281,279 testnet</a>
 <br>
+<a style="font-size:1.5em" href="/sigmatransaction?transaction=0xe8dc9a47d4682cc90d9c9b109c24547d9f3387f303892f8279aaef2757a02dc8">
+  SigmaJS visualisation of single transaction testnet</a>
 <br>
-<a style="font-size:1.5em" href="/sigmamult?block_num=1281279&num_block=1">SigmaJS visualisation of block 1,281,279 testnet</a>
+<a style="font-size:1.5em" href="/sigmatransaction?transaction=0x0844991a354f761cd5494f81483b38fc5b47af3644c1882a0e31c0776f8ba39d">
+  SimgaJS Represetation of testnet large contract with mutli stack calls</a>
 <br>
-<br>
-<a style="font-size:1.5em" href="/sigmatransaction?transaction=0xe8dc9a47d4682cc90d9c9b109c24547d9f3387f303892f8279aaef2757a02dc8">SigmaJS visualisation of single transaction testnet</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/sigmatransaction?transaction=0x0844991a354f761cd5494f81483b38fc5b47af3644c1882a0e31c0776f8ba39d">SimgaJS Represetation of testnet large contract with mutli stack calls</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/sigmacontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3949365&end=3967296">SimgaJS Represetation of contract (Gnosis Auction Wallet) mainnet</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/gtgetmultiblock?startblock=1281279&endblock=1281280">Graphtools visualisation of all transactions in block 1,281,279 and 1,281,280</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/gtcontract?contract=0xb62ef4c58f3997424b0cceab28811633201706bc&start=4048894&end=4048894">Graph Tools visualisation of contract 0xb62ef4c58f3997424b0cceab28811633201706bc from start=4048894  to end=4048894</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/gtcontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3949365&end=3967296">Graph Tools visualisation of contract 0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419 (Gnosis Auction Wallet)</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/gtcontract?contract=0xcafe1a77e84698c83ca8931f54a755176ef75f2c&start=3797426&end=4170580">GraphViz Aragon MultiSig contract! mainnet</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/graphviztransaction?transaction=0xdbe8080d8c8c4afc6ccfb3b87d645e1af51581ee82cc8cacd21e0a15648fe2e3">GraphViz visualisation of test loop testnet</a>
-<br>
-<br>
-<a style="font-size:1.5em" href="/graphviztransaction?transaction=0x83d0bb14283bc6cc513e22afa49e4ad38525e72283067861dc2b0567342e0bd2">GraphViz visualisation of a transaction that has two graphs! testnet</a>
-<br>
+<a style="font-size:1.5em" href="/gtgetmultiblock?startblock=1281279&endblock=1281280">
+  testnet Graphtools visualisation of all transactions in block 1,281,279 and 1,281,280</a>
 <br>
 
-<a style="font-size:1.5em" href="/gtdisplayall">Display all graph tool images generated</a>
+<br>
+
+
+
+<h1> Mainnet </h1>
+
+<a style="font-size:1.5em" href="/gtcontract?contract=0xcafe1a77e84698c83ca8931f54a755176ef75f2c&start=3797426&end=4170580">
+  Graph Tools Aragon MultiSig contract! mainnet</a>
+<br>
+<a style="font-size:1.5em" href="/sigmacontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3949365&end=3967296">
+  SimgaJS Represetation of contract (Gnosis Auction Wallet) mainnet</a>
+<br>
+<a style="font-size:1.5em" href="/sigmamult?block_num=3900005&num_block=1">SigmaJS Multi visualisation of block 3,900,005</a>
+<br>
+<a style="font-size:1.5em" href="/gtcontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3949365&end=3967296">
+  Graph Tools visualisation of contract 0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419 (Gnosis Auction Wallet)</a>
+<br>
+<a style="font-size:1.5em" href="/gtcontract?contract=0xb62ef4c58f3997424b0cceab28811633201706bc&start=4048894&end=4048894">
+  Graph Tools visualisation of contract 0xb62ef4c58f3997424b0cceab28811633201706bc from start=4048894  to end=4048894</a>
+<br>
+<a style="font-size:1.5em" href="/gtgetmultiblock?startblock=1281279&endblock=1281280">
+  mainnet Graphtools visualisation of all transactions in block 1,281,279 and 1,281,280</a>
+<br>
+
+
+
+<h1> Other </h1>
+<a style="font-size:1.5em" href="/gtdisplayall">Display all graph tool images generated (Testnet and Mainnet)</a>
 <br>
 <br>
 <a style="font-size:1.5em" href="/uploadfile">Upload debug.traceTransaction file manually</a>
+</div>
+
+
 
 
 

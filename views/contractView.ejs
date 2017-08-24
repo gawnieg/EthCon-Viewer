@@ -7,20 +7,35 @@
   <script>
   var picsToView = <%- JSON.stringify(picsToView)%>
   console.log("picsToView:"+picsToView)
+  console.log(picArr)
+  var picArr = picsToView;
+  for(var blockd=0;blockd<picArr.length;blockd++){
+      if(picArr[blockd]==null){
+        continue;
+      }
+      console.log("looking for pic: " + picArr[blockd])
+      var picstring= "/pics/";
+      picstring=picstring.concat(picArr[blockd])
+      picstring=picstring.concat(".png") //NOTE
+      var figure = document.createElement("FIGURE") //first generate figure
+      figure.setAttribute("id",picArr[blockd]) // set figure id
+      var x = document.createElement("IMG");//create image
+      x.setAttribute("src",  picstring);
+      x.setAttribute("id",picstring)
+      x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+      figure.appendChild(x) //image goes inside the figure
+      document.body.appendChild(figure);
+      var caption = document.createElement("FIGCAPTION"); //create figure caption
+      var text = document.createTextNode(picArr[blockd]) //creat text
+      caption.setAttribute("style","color:white")
+      caption.style.fontSize="50px"
+      caption.appendChild(text) // text goes inside figure caption
+      var y = document.getElementById(picArr[blockd])
+      y.appendChild(caption) //caption goes inside figure
+  }
 
-  picsToView.forEach(function(pic,i){
-    if(pic == null){
-      return;
-    }
-    var x = document.createElement("IMG");
-    var picpath="/pics/"
-    picpath = picpath.concat(pic,".png");
-    x.setAttribute("src", picpath);
-    x.setAttribute("title",picpath)
-    x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
-    document.body.innerHTML += "<h1 style=\"color:white\";>"+picsToView[i]+"</h1>"
-    document.body.appendChild(x);
-  })
+
+
 
   </script>
 </body>
