@@ -10,7 +10,7 @@ A MongoDB instance is also required, again running over its default port.
 
 Then carry out an NPM install
 
-Visit http://localhost:3005/api/<INSERT_DESIRED_ROUTE?block_num=1000&num_block=10
+Visit http://localhost:3005/api/<INSERT_DESIRED_ROUTE?block_num=1000&num_block=10 or http://localhost:3005 for homepage
 
 Depending on the route selected - graphtools
                                 - vis
@@ -19,11 +19,11 @@ Depending on the route selected - graphtools
                                 -sigmamult
 a certain format of graph network represending the control flow diagram will display in the browser.
 
-![Alt text](./gitreadmefiles/githubdemographtools.png?raw=true "Graph-Tools representation of one contracts control flow diagram")
+![Alt text](./gitreadmefiles/sigmajshomepage.png?raw=true "SigmaJS representation of one EVM invocation execution trace diagram")
 
+The examples on the homepage should give a good representation of what EthCon Viewer is capable of.
 
 The following should be noted:
-/sigma will only display the last block requested.
 
 /vis has a limitation of 30k -45k nodes, depending on structure of the contacts control flow diagram.
 

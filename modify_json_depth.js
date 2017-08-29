@@ -485,17 +485,14 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
         if the stack is empty, then the next step will be the start of a new island
         record the step that it went empty at and tied it back to the one previous
       */
-      if(sLogs[i].stack.length==0 || sLogs[i].op=="JUMP" || sLogs[i].op=="JUMPI"){ //if the stack is empty
-        //need edge between the last one and this one
-        var subgraphEdge = {
-          "from": step_number-1,
-          "to": step_number
-        }
-        linkSubGraphs.push(subgraphEdge); // add it to the edge list
-      }
-
-
-
+      // if(sLogs[i].stack.length==0 || sLogs[i].op=="JUMP" || sLogs[i].op=="JUMPI"){ //if the stack is empty
+      //   //need edge between the last one and this one
+      //   var subgraphEdge = {
+      //     "from": step_number-1,
+      //     "to": step_number
+      //   }
+      //   linkSubGraphs.push(subgraphEdge); // add it to the edge list
+      // }
 
       var length_stack_origin= stack_origins.length;
       //set arg_origins for this step as the items that were consumed from the stack,
@@ -511,35 +508,7 @@ function modify_structLogs(sLogs){//slogs is the whole of structLogs
       //update stack_origins
       stack_origins=update_stack_origins(stack_origins,sLogs[i]);
 
-
-      //for debugging remove
-      // proD=c_r.p;
-      //
-      // var debugstep={
-      //   "opcode":sLogs[i].op,
-      //   "step":step_number,
-      //   "c":c,
-      //   "p":proD,
-      //   "stack":sLogs[i].stack,
-      //   "stack_origins":stack_origins,
-      //   "arg_origins":sLogs[i].arg_origins
-      // }
-      // if(sLogs[i].opcode!= "JUMPDEST"){
-      //
-      //         debugarray.push(debugstep);
-      // }
-
-
-
   }
-
-  // console.log("printing subgraphEdges");
-  // linkSubGraphs.forEach(function(each){
-  //   console.log(JSON.stringify(each))
-  // })
-  // console.log("printing debugarray");
-  // console.log(JSON.stringify(debugarray))
-
   return output;
 }
 
@@ -641,7 +610,7 @@ function update_stack_origins(orig,sLog){
   return orig;
 
 }
-function origin(d,s){
+function origin(d,s){ // helper function to create object
   var r ={depth:d, step:s};
   return r;
 }

@@ -807,12 +807,13 @@ app.get("/checktrans",function(req,res){
   transaction=transaction.toString()
   console.log("#################\nThe sanity checker has been called for the transaction: \n ########################\n"+transaction)
   checkTrans(transaction).then(function (result) {
-    console.log("rendering"+result)
+    // console.log("rendering"+result)
     if(result===undefined){
       result = "result was found to be undefined"
     }
     res.render("checktrans.ejs",{
-      traceTrans: result
+      // traceTrans: result.toString()
+      traceTrans: JSON.stringify(result)
     })
   }).catch(function (err) {
       console.log("there was an error in the sendAsync function: "+err)

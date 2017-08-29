@@ -39,7 +39,9 @@ function formGraphFromStaticJSON(transactionHash,rawJSON){ //int_trans will be b
          5. send to python module to generate actual graph tool pics
          6. save to mongodb
          */
+
          var orig_steps=rawJSON.structLogs;
+              console.log("orig_steps "+orig_steps)
          if(orig_steps != undefined){
          var SINGLE_NODES_OFF = 1;//if we are interested in graphs without single node define SINGLE_NODES_OFF to be true
          //this seperates the structLogs into their own files according to depth. Depth ==11 does not mean 11 stack files!

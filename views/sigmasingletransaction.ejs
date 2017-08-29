@@ -61,7 +61,10 @@ window.onload=function(){
       settings: graphSettings
     })
     s.settings({
-      defaultLabelColor:"#f44242"
+      defaultLabelColor:"#ffffff", //f44242
+      labelThreshold: 0,
+      defaultLabelSize: 10           //delete this for no labels,
+      // labelSize: "proportional"
     });
     //Start Force Atlas algorithm
     s.startForceAtlas2(forceConfig);

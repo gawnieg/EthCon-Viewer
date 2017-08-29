@@ -1,0 +1,15 @@
+{ Error: Cannot find module '../build/Release/bson'
+    at Function.Module._resolveFilename (module.js:485:15)
+    at Function.Module._load (module.js:437:25)
+    at Module.require (module.js:513:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/gawnie/Ethcon_viewer/towards_deploy/node_modules/mongodb-promise/node_modules/bson/ext/index.js:15:10)
+    at Module._compile (module.js:569:30)
+    at Object.Module._extensions..js (module.js:580:10)
+    at Module.load (module.js:503:32)
+    at tryModuleLoad (module.js:466:12)
+    at Function.Module._load (module.js:458:3) code: 'MODULE_NOT_FOUND' }
+mongoCollection is test
+Finding contract transactions between blocks11770 and 11790
+0x7f60c64cf8aed595d857bccf5cd66e982fc3c7816488956cd52bd972b9a119cb	1500000	11779
+0xe7e6be68ac08c8266779fd648ff4b06641f4e49454f6e3c8c78a7fa7c8f9edee	90000	11781

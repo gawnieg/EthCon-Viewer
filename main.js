@@ -39,25 +39,38 @@ for(var blockIndex = parseInt(startingBlock); blockIndex <= parseInt(endingBlock
 
 
 function getBlock(block_num){ // takes block returns transactions array
-  var block= web3.eth.getBlock(block_num)
-  return block.transactions;
+  try{
+    var block= web3.eth.getBlock(block_num)
+    return block.transactions;
+  }
+  catch(err){
+    console.err("was problem with block!")
+    return [];
+  }
+
 }
 function checkTransactionArray(transArr){
   for(var i=0;i<transArr.length; i++){
-    var trans = web3.eth.getTransaction(transArr[i])
-    var gas = trans.gas;
-    var to = trans.to;
-    var from = trans.from;
-    var block_num = trans.blockNumber;
-    var block_hash=trans.blockHash;
-    var gasPrice = trans.gasPrice;
-    var value = trans.value;
-    // console.log("this tranaction has "+ gas + " gas")
-    if(gas > 21000){
-      console.log(transArr[i] + "\t" + gas + "\t" + block_num)
-      console.error(transArr[i])
-      // save_trans_to_db(trans,gas,to,from,block_num,block_hash,gasPrice,value)
+    try{
+        var trans = web3.eth.getTransaction(transArr[i])
+        var gas = trans.gas;
+        var to = trans.to;
+        var from = trans.from;
+        var block_num = trans.blockNumber;
+        var block_hash=trans.blockHash;
+        var gasPrice = trans.gasPrice;
+        var value = trans.value;
+        // console.log("this tranaction has "+ gas + " gas")
+        if(gas > 21000){
+          console.log(transArr[i] + "\t" + gas + "\t" + block_num)
+          console.error(transArr[i])
+          // save_trans_to_db(trans,gas,to,from,block_num,block_hash,gasPrice,value)
+        }
     }
+    catch(err){
+      console.error("was problem with transaction!")
+    }
+
   }
 }
 
