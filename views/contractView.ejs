@@ -4,6 +4,20 @@
 <body>
   <h1 style="color:white;"> You are visualising <%=picsToView.length%> EVM execution traces with graph-tool!</h1>
   <body style="background-color:#000000">
+  <style>
+  figure{
+    display: inline-grid;
+  }
+  figure figurecaption{
+    text-align: center;
+  }
+  figure img {
+      vertical-align: top;
+  }
+  </style>
+
+
+
   <script>
   var picsToView = <%- JSON.stringify(picsToView)%>
   console.log("picsToView:"+picsToView)
