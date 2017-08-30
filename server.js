@@ -755,7 +755,8 @@ var callback = function(contractTransList,found_trans,res){
       console.log(each)
     })
     res.render("contractView.ejs",{
-      picsToView:picsToView
+      picsToView:picsToView,
+      testORmain:testORmain
     });
   }
 }

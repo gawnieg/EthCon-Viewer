@@ -20,6 +20,7 @@
 
   <script>
   var picsToView = <%- JSON.stringify(picsToView)%>
+  var testORmain =  <%- JSON.stringify(testORmain)%>
   console.log("picsToView:"+picsToView)
   console.log(picArr)
   var picArr = picsToView;
@@ -37,12 +38,34 @@
       x.setAttribute("src",  picstring);
       x.setAttribute("id",picstring)
       x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+      // x.href = "www.google.com"
       figure.appendChild(x) //image goes inside the figure
       document.body.appendChild(figure);
       var caption = document.createElement("FIGCAPTION"); //create figure caption
       var text = document.createTextNode(picArr[blockd]) //creat text
       caption.setAttribute("style","color:white")
       caption.style.fontSize="50px"
+
+      var link = document.createElement("A");
+      link.innerHTML = "Etherscan "
+      // now construct link
+      var etherscanURL;
+      if(testORmain=="test"){
+        etherscanURL = "http://ropsten.etherscan.io/tx/"
+        var trans_slice = picArr[blockd].slice(0,66); // this is the length of the tranaction hash
+        etherscanURL=etherscanURL.concat(trans_slice)
+      }
+      else{
+        etherscanURL = "http://www.etherscan.io/tx/"
+        var trans_slice = picArr[blockd].slice(0,66); // this is the length of the tranaction hash
+        etherscanURL=etherscanURL.concat(trans_slice)
+      }
+      console.log("picArr[blockd] trans_slice is "+trans_slice)
+      console.log("etherscanURL is "+etherscanURL)
+      link.href = etherscanURL;
+      caption.appendChild(link)
+
+
       caption.appendChild(text) // text goes inside figure caption
       var y = document.getElementById(picArr[blockd])
       y.appendChild(caption) //caption goes inside figure
