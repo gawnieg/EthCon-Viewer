@@ -1,4 +1,6 @@
 public/pics/
 node_modules/*
+node_modules/*/*
 fileuploads/
 package-lock.json
+run_main
