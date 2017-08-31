@@ -236,17 +236,18 @@ app.get('/graphviz', function(req, res) {
 
 app.get("/sigmatransaction",function(req,res){
   var transaction = req.query.transaction; // should be one singular transaction
-  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  sigmatransaction request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+  var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  sigmatransaction request %%%%%%%%%%%%%%%%%%%%%% with labels?: "+isLabel)
   console.log("received sigmatransaction request for "+transaction)
   transaction=transaction.toString();
   var transArr =[];
   transArr.push(transaction);
-  find_in_db(transArr,single_sigma_callback,res)
+  find_in_db(transArr,single_sigma_callback,res,null,null,null,isLabel)
 
 
 })//end of app get sigmatransaction
 
-var single_sigma_callback = function(transArr,found_trans,res){
+var single_sigma_callback = function(transArr,found_trans,res,_a,_b,_c,isLabel){ //_a,_b,_c are dummy variables
   //find in db will either find an empty db or the transaction
   var response_sigma=[];
   if(found_trans.length==0){//there was nothing found
@@ -269,7 +270,9 @@ var single_sigma_callback = function(transArr,found_trans,res){
       }
     }
     console.log("titleTrans is "+titleTrans)
+    console.log("islabel is "+isLabel)
     res.render("sigmasingletransaction.ejs",{
+      isLabel:isLabel,
       titleTrans:titleTrans,
       transArr:transArr,
       num_block:"10000", //dummy values so we can use sigmamulti template
@@ -378,6 +381,7 @@ app.get("/sigmamulti",function(req,renderres){
 app.get('/sigmamult', function(req, res) {
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
+  var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
   console.log("-----------NEW BROWSER REQUEST FOR SIGMAJS MULT VIZ-------------")
   console.log("received block_num:" + block_num +" ,num_block:" + num_block);
 
@@ -572,6 +576,7 @@ app.get("/sigmacontract",function(req,res){
   viewContract=viewContract.toString();
   var _startBlock = parseInt(req.query.start);
   var _endBlock = parseInt(req.query.end);
+  var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Sigma contract view request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
   lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
@@ -711,7 +716,7 @@ app.get("/gtcontract",function(req,res){
 
 var callback = function(contractTransList,found_trans,res){
   /*
-    This function is used by many routes. It is typically called after find_in_db(),
+    This function is used by many graph-tool routes. It is typically called after find_in_db(),
     found_trans is an array of the items returned from mongodb
     contractTransList is the list of transactions that are requested from the brower
     res is the express response
@@ -761,12 +766,12 @@ var callback = function(contractTransList,found_trans,res){
   }
 }
 
-function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blockNum){
+function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blockNum,_isLabel){
   /*
     find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
     it places them in a list. Then callback is then called!
   */
-  // console.log("find in db called with "+contractTransList)
+  // console.log("find in db called with islabel "+_isLabel)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
               return db.collection('test')
@@ -779,7 +784,7 @@ function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blo
                                 found_trans.push(item);//the whole object
                               })
 
-                              db.close().then(callback(contractTransList,found_trans,res,_contractName,_numBlocks,_blockNum));
+                              db.close().then(callback(contractTransList,found_trans,res,_contractName,_numBlocks,_blockNum,_isLabel));
                           })
               })
   })

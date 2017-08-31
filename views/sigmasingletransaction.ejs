@@ -60,9 +60,16 @@ window.onload=function(){
       container: "network-graph",
       settings: graphSettings
     })
+    var isLabel =  <%- JSON.stringify(isLabel) %>;
+    if(isLabel){
+      var _labelThreshold = 0;
+    }
+    else{
+      var _labelThreshold = 8;
+    }
     s.settings({
       defaultLabelColor:"#ffffff", //f44242
-      labelThreshold: 0,
+      labelThreshold: _labelThreshold,
       defaultLabelSize: 10           //delete this for no labels,
       // labelSize: "proportional"
     });

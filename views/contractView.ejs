@@ -15,7 +15,20 @@
       vertical-align: top;
   }
   </style>
+<script>
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+var foo = getParameterByName('isLabel'); // "lorem"
+console.log("foo is "+foo)
 
+</script>
 
 
   <script>
@@ -45,9 +58,14 @@
       var text = document.createTextNode(picArr[blockd]) //creat text
       caption.setAttribute("style","color:white")
       caption.style.fontSize="50px"
-
+      caption.appendChild(text) // text goes inside figure caption
       var link = document.createElement("A");
-      link.innerHTML = "Etherscan "
+      var viewtrans = document.createElement("A");
+      var viewinnovation = document.createElement("A");
+
+      link.innerHTML = "<br>View on Etherscan"
+      viewtrans.innerHTML = " | View Tx SigmaJS | "
+      viewinnovation.innerHTML = "View EVM innovocation"
       // now construct link
       var etherscanURL;
       if(testORmain=="test"){
@@ -60,13 +78,19 @@
         var trans_slice = picArr[blockd].slice(0,66); // this is the length of the tranaction hash
         etherscanURL=etherscanURL.concat(trans_slice)
       }
+      var sigmaJSlink="/sigmatransaction?transaction="+trans_slice;
+      viewtrans.href = sigmaJSlink;
+      var viewinnovationlink = "/depthoftransaction?transaction="+trans_slice;
+      viewinnovation.href = viewinnovationlink;
       console.log("picArr[blockd] trans_slice is "+trans_slice)
       console.log("etherscanURL is "+etherscanURL)
       link.href = etherscanURL;
       caption.appendChild(link)
+      caption.appendChild(viewtrans)
+      caption.appendChild(viewinnovation)
 
 
-      caption.appendChild(text) // text goes inside figure caption
+
       var y = document.getElementById(picArr[blockd])
       y.appendChild(caption) //caption goes inside figure
   }
