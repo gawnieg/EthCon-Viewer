@@ -271,6 +271,9 @@ var single_sigma_callback = function(transArr,found_trans,res,_a,_b,_c,isLabel){
     }
     console.log("titleTrans is "+titleTrans)
     console.log("islabel is "+isLabel)
+    if(isLabel == undefined){
+      isLabel =0
+    }
     res.render("sigmasingletransaction.ejs",{
       isLabel:isLabel,
       titleTrans:titleTrans,
@@ -583,6 +586,9 @@ app.get("/sigmacontract",function(req,res){
     if(err){
       console.log("there was an error with etherscan api lookup")
       res.send("etherscan error!!")
+    }
+    if(contractTransList.length==0){
+      res.send("Etherscan did not find any results for that search, please check your parameters and try again!")
     }
     find_in_db(contractTransList,sigmacontractCallback,res,viewContract,_startBlock,_endBlock);
   })
