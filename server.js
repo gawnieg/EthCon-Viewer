@@ -1066,6 +1066,27 @@ function find_depth_in_db(contractTransList,callback,res){
   .fail(function(err) {console.log(err)});
 }
 
+///new route to delete tranactions from db
+app.get("/deleteFromDB",function(req,res){
+  var deleteTransFromDB = require("./delete_from_db.js")
+  //get URL parameters
+  var viewContract = req.query.contract; // read in from URL
+  viewContract=viewContract.toString();
+  var _startBlock = parseInt(req.query.start);
+  var _endBlock = parseInt(req.query.end);
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Delete Request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+  console.log("want to delete for : "+viewContract+" between "+_startBlock + " and "+_endBlock);
+
+  lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
+    if(err){
+      console.log("there was an error with etherscan api lookup")
+      res.send("etherscan error!!")
+    }
+    deleteTransFromDB.delete_array_of_trans(contractTransList);
+    // find_in_db(contractTransList,callback,res,viewContract,_startBlock.toString(),_endBlock.toString());
+    res.send("Delete Request Sent for "+contractTransList)
+  })
+})
 
 
 
