@@ -679,6 +679,7 @@ var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
           resolve(contractTransList);
         }
         else{// the status was zero!
+          console.log("rejecting as no results found")
           reject([]) //returns an empty array!
         }
       })
