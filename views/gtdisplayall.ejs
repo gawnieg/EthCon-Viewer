@@ -5,6 +5,7 @@
 <body>
 <body style="background-color:#000000">
 <h1 style="color:white;"> You are visualising <%=picArr.length%> EVM execution traces with graph-tool!</h1>
+
 <style>
 figure{
   display: inline-grid;
@@ -15,14 +16,33 @@ figure figurecaption{
 figure img {
     vertical-align: top;
 }
+a:hover {
+  color:#000000;
+  background-color: #f49b42;
+}
+a:link { color:#d0d0d0;}
 </style>
+
 
 </body>
 
 <script>
-var picArr = <%- JSON.stringify(picArr)%>
-console.log("picArr:"+picArr)
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+var noLinks = getParameterByName('noLinks'); // "lorem"
 
+var picsToView = <%- JSON.stringify(picArr)%>
+var testORmain =  <%- JSON.stringify(testORmain)%>
+console.log("picsToView:"+picsToView)
+console.log(picArr)
+var picArr = picsToView;
 for(var blockd=0;blockd<picArr.length;blockd++){
     if(picArr[blockd]==null){
       continue;
@@ -30,23 +50,63 @@ for(var blockd=0;blockd<picArr.length;blockd++){
     console.log("looking for pic: " + picArr[blockd])
     var picstring= "/pics/";
     picstring=picstring.concat(picArr[blockd])
+    // picstring=picstring.concat(".png") //NOTE
     var figure = document.createElement("FIGURE") //first generate figure
     figure.setAttribute("id",picArr[blockd]) // set figure id
     var x = document.createElement("IMG");//create image
     x.setAttribute("src",  picstring);
     x.setAttribute("id",picstring)
     x.setAttribute("onerror","this.style.display='none'"); // if the picture is not showing for reasons that
+    // x.href = "www.google.com"
     figure.appendChild(x) //image goes inside the figure
     document.body.appendChild(figure);
-    var caption = document.createElement("FIGCAPTION"); //create figure caption
-    var text = document.createTextNode(picArr[blockd]) //creat text
-    caption.setAttribute("style","color:white")
-    caption.style.fontSize="50px"
-    caption.appendChild(text) // text goes inside figure caption
-    var y = document.getElementById(picArr[blockd])
-    y.appendChild(caption) //caption goes inside figure
-}
 
+
+    if(!noLinks){ // only if no links are specified
+
+      var caption = document.createElement("FIGCAPTION"); //create figure caption
+      var text = document.createTextNode(picArr[blockd]) //creat text
+      caption.setAttribute("style","color:white")
+      caption.style.fontSize="50px"
+      caption.appendChild(text) // text goes inside figure caption
+      var link = document.createElement("A");
+      var viewtrans = document.createElement("A");
+      var viewinnovation = document.createElement("A");
+
+      link.innerHTML = "<br>View on Etherscan"
+      viewtrans.innerHTML = " | View Tx SigmaJS | "
+      viewinnovation.innerHTML = "View EVM Innovocation SigmaJS"
+      // now construct link
+      var etherscanURL;
+      if(testORmain=="test"){
+        etherscanURL = "http://ropsten.etherscan.io/tx/"
+        var trans_slice = picArr[blockd].slice(0,66); // this is the length of the tranaction hash
+        etherscanURL=etherscanURL.concat(trans_slice)
+      }
+      else{
+        etherscanURL = "http://www.etherscan.io/tx/"
+        var trans_slice = picArr[blockd].slice(0,66); // this is the length of the tranaction hash
+        etherscanURL=etherscanURL.concat(trans_slice)
+      }
+      var sigmaJSlink="/sigmatransaction?transaction="+trans_slice;
+      viewtrans.href = sigmaJSlink;
+      var depthoftransactionurl = picArr[blockd].slice(0,picArr[blockd].length-4)
+      console.log("depthoftransactionurl: "+depthoftransactionurl)
+      var viewinnovationlink = "/depthoftransaction?transaction="+depthoftransactionurl;
+      viewinnovation.href = viewinnovationlink;
+      console.log("picArr[blockd] trans_slice is "+trans_slice)
+      console.log("etherscanURL is "+etherscanURL)
+      link.href = etherscanURL;
+      caption.appendChild(link)
+      caption.appendChild(viewtrans)
+      caption.appendChild(viewinnovation)
+
+
+
+      var y = document.getElementById(picArr[blockd])
+      y.appendChild(caption) //caption goes inside figure
+    }
+}
 
 </script>
 

@@ -852,6 +852,7 @@ app.get("/gtdisplayall",function(req,res){ // route that finds all the file name
       var picArr = items;
       console.log("found "+picArr.length + " images");
       res.render("gtdisplayall.ejs",{
+        testORmain,testORmain,
         picArr:picArr
       })
   });
