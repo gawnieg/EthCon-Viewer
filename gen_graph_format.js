@@ -196,7 +196,7 @@ generateFormat: function(TwoDarraymodified,graph_depth,SINGLE_NODES_OFF,TwoDChec
         }
       }
       stepplusone=stepplusone.toString(); //needed for formats!
-      console.log("adding JUMP or JUMPI edge from "+logs[x].step+" to "+testopcode)
+      // console.log("adding JUMP or JUMPI edge from "+logs[x].step+" to "+testopcode)
       //need edge from jump to next step
       returnObj.res_str=returnObj.res_str.concat(logs[x].step, " -> ",stepplusone,newline);
       //modifed graph tools format

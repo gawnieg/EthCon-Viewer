@@ -119,7 +119,7 @@ app.get('/vis', function(req, res) {
 
 
 /////////////////////////////////////////////////////////////////////////////////
-                            //new route for graphviz
+                            //graphviz routes
 /////////////////////////////////////////////////////////////////////////////////
 app.get("/graphviztransaction",function(req,res){
   var transaction = (req.query.transaction).toString()
@@ -172,67 +172,41 @@ var graphvizCallback = function(contractTransList,found_trans,res){
     });
   }
 }
+
+app.get("/graphvizInvocation",function(req,res){ // graphviz for single EVM invocation
+  var transaction = (req.query.transaction).toString()
+  var transArr=[];
+  transArr.push(transaction);
+  console.log("#######################    GraphViz Invocation called for "+ transaction);
+  find_depth_in_db(transArr,graphvizCallbackEVMInvocation,res)
+})
+
+var graphvizCallbackEVMInvocation = function(contractTransList,found_trans,res){
+  console.log("graphvizCallbackEVMInvocation called")
+  var response_graphviz = []; // to store results
+  var transArr = [];
+  found_trans.forEach(function(index){
+    var dotFormat = index.graph;
+    console.log(dotFormat)
+    transArr.push(index.randomHash)
+    dotFormat=dotFormat.toString()
+    response_graphviz.push(dotFormat);
+  })
+  //now render to screen
+  console.log("rendering screen ejs")
+  console.log("transArr is "+transArr)
+  res.render("viz.ejs",{
+    transArr:transArr,
+    block_num:"1000",
+    num_block:"10",
+    graph_formats: response_graphviz
+  });
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
                                   // end of graphviz route
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
-// for Viz library - difference in what view it renders
-app.get('/graphviz', function(req, res) {
-  var block_num = req.query.block_num; // read in from URL
-  var num_block = req.query.num_block;
-  console.log("------------NEW BROWSER REQUEST FOR GRAPHVIZ-------")
-  console.log("received block_num:" + block_num +" ,num_block:" + num_block);
-
-  /*
-  Search for block in database. If it is not there then generate the blocks
-  */
-  var upper_block_limit = parseInt(block_num) + parseInt(num_block);
-  var response_graphviz=[];
-  for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect(url)
-      .then(function(db){
-              return db.collection('test')
-                  .then(function(col) {
-                      return col.find({block_num : block_num}).toArray()
-                          .then(function(items) {
-                            if(items.length){
-                              console.log("found "+items.length+" graphviz items for this block in DB!")
-                              for(i=0;i<items.length;i++){
-                                var r = items[i].graph;
-                                r=r.toString();
-                                response_graphviz.push(r)
-                              }
-                            db.close()
-                            .then(function(){
-                              console.log("yurt - this is a promise .then")
-                            })
-                            .then(function (){
-                                console.log("rendering screen ejs")
-                                res.render("viz.ejs",{
-                                  block_num:block_num,
-                                  num_block:num_block,
-                                  graph_formats: response_graphviz
-                                });
-                            });
-                            }
-                            else{
-                              console.log("found nothing in DB so adding block no. "+block_num +" to db ");
-                              //add the specified graphs to the database
-                              add_blocks_graph_to_db(block_num,1);// 1 is blank does nt matter what
-                            }
-
-                          })
-
-              })
-  })
-  .fail(function(err) {console.log(err)});
-}//end of for loop
-
-});//end of express graphviz route
-
-
 
 app.get("/sigmatransaction",function(req,res){
   var transaction = req.query.transaction; // should be one singular transaction
@@ -243,8 +217,6 @@ app.get("/sigmatransaction",function(req,res){
   var transArr =[];
   transArr.push(transaction);
   find_in_db(transArr,single_sigma_callback,res,null,null,null,isLabel)
-
-
 })//end of app get sigmatransaction
 
 var single_sigma_callback = function(transArr,found_trans,res,_a,_b,_c,isLabel){ //_a,_b,_c are dummy variables
@@ -345,36 +317,7 @@ app.get("/sigmamulti",function(req,renderres){
     find_in_db(transHashList,single_sigma_callback,renderres);
   });
 })
-// var newSigmaCallback=function(contractTransList,found_trans,res){
-//   console.log("newSigmaCallback called!");
-//   var found_trans_list=[];
-//   found_trans.forEach(function(trans){//get transactions number from each object found
-//     found_trans_list.push(trans.transaction_no);
-//   })
-//   console.log("Callback: there were: "+found_trans.length + "items found in the db");
-//   console.log("Callback: we need a min of "+contractTransList.length+" items..")
-//   Array.prototype.diff = function(a){
-//     return this.filter(function(i){
-//       return a.indexOf(i)<0;
-//     });
-//   };
-//   var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
-//   if(needToFindTrans.length){ //if there are ones that need to be generated
-//     console.log("Callback: need to carry out graph gen for these: ");
-//     //printing nicely
-//     needToFindTrans.forEach(function(each){
-//       console.log(each)
-//     })
-//     graph_gen_for_contract.gen_graph_promise(needToFindTrans)
-//   }
-//   else{
-//
-//
-//     res.render("contractView.ejs",{
-//       picsToView:picsToView
-//     });
-//   }
-// }
+
 
 
 
@@ -895,7 +838,7 @@ var getTransactionsFromBlock = function(block){
 }
 
 
-app.get("/gtgetmultiblock",function(req,renderres){ // this only works for mainnet due to http calls only going to etherchain
+app.get("/gtgetmultiblock",function(req,renderres){
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
   console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
@@ -977,16 +920,6 @@ app.get("/gtdisplayall",function(req,res){ // route that finds all the file name
 app.get("/uploadfile",function(req,res){ // serve out page to upload file
   console.log("serving upload page")
   res.render("uploadfile.ejs")
-  /*
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write("upload JSON returned from Geth debug.traceTransaction(hash)")
-  res.write('<form action="fileupload" method="post" enctype="multipart/form-data">');
-  res.write('<input type="file" name="filetoupload"><br>');
-  res.write('<input type="submit">');
-  res.write('</form>');
-  return res.end();
-  */
-
 })
 
 app.post("/fileupload",function(req,res){
@@ -1029,7 +962,7 @@ app.post("/fileupload",function(req,res){
 //                              per random hash , per a specified depth 0x123...._4
 // for further investigation of that crazy transsaction!
 
-/////
+//////////////////////////////////////////////////////////////////////////////////
 
 app.get("/depthoftransaction",function(req,res){
   var transaction = req.query.transaction;

@@ -1,12 +1,8 @@
  'use strict'
-//experimental modified version of graph_gen
-//http://localhost:7000/contract?contract=0x88aA042c4AaE423E0F1bb48542b473d1dD20a807&start=4048910&end=4048910
 
 
-
-const randomstring =require("randomstring")
+const randomstring =require("randomstring") // used for writing to disk
 const db2 = require("./database2.js");//second database with promises
-// const graph_format = require("./generate_graph_format.js") // given a modified trace, generates graphviz format
 const mod_json = require("./modify_json_depth.js")// for different stack depths
 const fs = require("fs")
 
@@ -119,10 +115,10 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
           var allGraphsPerTrans =""; // group all simple dot formats for each depth per each transactions and then send this to the python module
           var transHashArray=[]; //to store transHashArray for sending to
           var allColoursPerTrans=[];//to store colourarrays
-          var allLabelsPerTrans=[];
+          var allLabelsPerTrans=[]; //to store all labels
           for(var graph_depth=1; graph_depth<TwoDarraymodified.length;graph_depth++){
 
-            var format;
+            var format; // object to store graphFormat
             try{
               format =  graphFormat.generateFormat(TwoDarraymodified,graph_depth,1,TwoDChecklist); //seperate function to loop throuhg and generate formats
             }
@@ -132,14 +128,6 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
                 null,null,null,null,null,null,null,null,null); //passing block number, transaction_no, graph output
               continue;
             }
-
-            //FOR DEBUGGIN!!!
-            var lengthOfNodes = format.sigmaobj.nodes.length;//for debugging
-            var lengthOfColours = format.graphtools_color.length;
-            var lengthOfLabels = format.graphtools_label.length;
-            // console.log("lengthOfNodes "+lengthOfNodes);
-            // console.log("lengthOfColours "+lengthOfColours);
-            // console.log("lengthOfLabels "+lengthOfLabels)
 
             var res_str = format.res_str;
             var res_str_gml=format.res_str_gml;
@@ -156,7 +144,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
             allLabelsPerTrans.push(graphtools_label)
             var graphtools_color=format.graphtools_color;
             allColoursPerTrans.push(graphtools_color);
-            console.log("trace found and graph made ...now going to make graph tools pic")
+            // console.log("trace found and graph made ...now going to make graph tools pic")
 
             //save to db
             db2.save_trans_to_db(contracts_trans_list[int_trans],
@@ -178,9 +166,10 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
           var dotfilepath=randomstring.generate(7);// for some reason phython is requiring that it be in the same directory
           dotfilepath=dotfilepath.concat(".dot");
           console.log("dotfilepath: "+dotfilepath)
-          pythonGraphTools(dotfilepath,allGraphsPerTrans,allColoursPerTrans,allLabelsPerTrans,transHashArray)
+          pythonGraphTools(dotfilepath,allGraphsPerTrans,allColoursPerTrans,allLabelsPerTrans,transHashArray) // send to graph-tool generating function
       }//end of if result.result != undefined
 
+      //if the result was undefined or if the response is empty (pre a cetain blocknumber)
      if(result.result==undefined||result.result.structLogs.length==0){
         console.log("no trace found but saving placeholder");
         db2.save_trans_to_db(contracts_trans_list[int_trans],"bad block!"); //passing block number, transaction_no, graph output.
@@ -296,7 +285,7 @@ function isolateSingleNodes(TwoDarraymodified,TwoDChecklist,depth){
 
 function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphtools_label,transHashArray){
   var spawn = require('child_process').spawn,
-      py    = spawn('python', ['python_module.py']);
+      py    = spawn('python', ['python_module.py']); // python_module is the name of the process
   // var sampledotfile="digraph{\n1\n2\n1 -> 2\n}" //this would be coming from database
   //write file to disk temporaily.
 
@@ -309,19 +298,16 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
       console.log("there was an error writing to file" + err);
     }
     //now send this dot file path to the python module which will make the graph
-    console.log("now writing to python module!"+py.pid)
-    console.log("nodejs colorarray length for debuging "+ graphtools_color.length)
-    // py.on("connected",function(){
-      py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
-      py.stdin.write("\n")
-      py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
-      py.stdin.write("\n")
-      py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
-      py.stdin.write("\n");
-      py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
-      py.stdin.write("\n");
-      py.stdin.end();
-    // })
+    console.log("now writing to python module with PID "+py.pid)
+    py.stdin.write(JSON.stringify(dotfilepath)); //sending data to the python process!
+    py.stdin.write("\n")
+    py.stdin.write(JSON.stringify(graphtools_color)); // sending colours
+    py.stdin.write("\n")
+    py.stdin.write(JSON.stringify(graphtools_label));//sending opcodes
+    py.stdin.write("\n");
+    py.stdin.write(JSON.stringify(transHashArray));//sending opcodes
+    py.stdin.write("\n");
+    py.stdin.end();
   });
   var dataString=""; //variable to store return from python module
   py.stdout.on('data', function(data){ // listen for data coming back from python!
@@ -329,7 +315,7 @@ function pythonGraphTools(dotfilepath,allGraphsPerTrans,graphtools_color,graphto
   });
 
   py.stdout.on('end', function(){ //pythons stdout has finished - now do stuff
-    console.log(dataString); // print out everything collected from python stdout
+    // console.log(dataString); // print out everything collected from python stdout
     //now delete temp dot file (with all dot files in it)
     fs.stat(dotfilepath, function (err, stats) { //check first if there is a dot file
       console.log(stats);//here we got all information of file in stats variable

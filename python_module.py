@@ -97,7 +97,6 @@ def main():
 
                 listofnum = list(range(max(hold_colour_array)))#create a list like [0,1,2,3, to max num in hold_colour array]
                 diff = list(set(listofnum)-set(hold_colour_array))
-                print("getting here")
                 #for each number of the hold_colour_array, for up to that number we must find the number of numbers that have been excluded
                 count_missing =0
                 real_colour_index_array=[]
@@ -112,7 +111,6 @@ def main():
                     else:
                         real_colour_index_array.append((hca-count_missing)) # add the offset to the real_colour_index_array
                 # setting colours now with property
-                print("getting here 2")
                 real_index=0 # just incrementer thru real_colour_index_array
                 for vertex in g.vertices():
                     v_prop_colour[vertex]=individColorArray[real_colour_index_array[real_index]] # get the hex colour string
@@ -126,14 +124,11 @@ def main():
                     real_index=real_index+1
                 folderout=fcheckname    #"./public/pics/"+filename+".png"
                 dimension_i=0
-                print("getting here 3")
                 dimension_ii=1000
                 # try simpler mechanism
                 test0=2*lastIndex
                 test1= int(test0)
-                print("test1 is "+str(test1))
                 if(test1 > 2000):
-                    print("setting dimension_ii to 2000")
                     dimension_ii=2000
                 elif(test1<100):
                     dimension_ii=500
@@ -141,16 +136,11 @@ def main():
                     dimension_ii=600
                 elif(test1<300):
                     dimension_ii=850
-                    print("setting dimension_ii to 200")
                 elif(test1<500):
                     dimension_ii=1400
-                    print("setting dimension_ii to 300")
                 else:
-                    print("default dimension_ii = test1")
                     dimension_ii=test1
 
-
-                print("python: setting dimension_ii as "+ str(dimension_ii))
 
             except:
                 print("python: error defining vertices!!")
