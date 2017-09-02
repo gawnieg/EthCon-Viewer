@@ -15,7 +15,8 @@ const graph_gen_per_transaction=require("./generate_graph_per_transaction.js")
 const generate_graph_from_static = require("./generate_graph_from_upload.js")
 var Web3 = require('web3');
 var web3 = new Web3();
-
+const graph_tool_routes = require("./graph_tool_routes.js")
+const misc_routes = require("./misc_routes.js")
 
 //var url = "mongodb://localhost:27017/test?socketTimeoutMS=90000";
 var url = "mongodb://localhost:27017/test";
@@ -45,11 +46,15 @@ try{
   else{//now connect other instances required
     graph_gen.setGethURL(connectionURL);
     graph_gen_for_contract.setGethURL(connectionURL);
+    misc_routes.setGethURL(connectionURL)
   }
 }
 catch(err){
   console.log("Chucking error for connecting to Geth" +err);
 }
+// set testORmain in modules
+
+
 
 
 // homepage!!!
@@ -121,93 +126,37 @@ app.get('/vis', function(req, res) {
 /////////////////////////////////////////////////////////////////////////////////
                             //graphviz routes
 /////////////////////////////////////////////////////////////////////////////////
+const graphviz_routes = require("./graphviz_routes.js")
+const helper_functions = require("./helper_functions.js")
 app.get("/graphviztransaction",function(req,res){
   var transaction = (req.query.transaction).toString()
   console.log("#######################    GraphViz called for "+ transaction);
   var transArr=[];
   transArr.push(transaction);
-  find_in_db(transArr,graphvizCallback,res)
+  var graphvizCallback = graphviz_routes.graphvizCallback;
+  var find_in_db_var = helper_functions.find_in_db;
+  console.log("here")
+  find_in_db_var(transArr,graphvizCallback,res)
 })
 
-var graphvizCallback = function(contractTransList,found_trans,res){
-  console.log("graphvizCallback called")
-  var found_trans_list=[];
-  found_trans.forEach(function(trans){//get transactions number from each object found
-    found_trans_list.push(trans.transaction_no);
-  })
-  console.log("Callback: there were: "+found_trans.length + "items found in the db");
-  console.log("Callback: we need a min of "+contractTransList.length+" items..")
-  Array.prototype.diff = function(a){
-    return this.filter(function(i){
-      return a.indexOf(i)<0;
-    });
-  };
-  var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
-  if(needToFindTrans.length){ //if there are ones that need to be generated
-    console.log("Callback: need to carry out graph gen for these: ");
-    //printing nicely
-    needToFindTrans.forEach(function(each){
-      console.log(each)
-    })
-    graph_gen_for_contract.gen_graph_promise(needToFindTrans)
-  }
-  else{ // found items in db, now display them
-    var response_graphviz = []; // to store results
-    var transArr = [];
-    found_trans.forEach(function(index){
-      var dotFormat = index.graph;
-      console.log(dotFormat)
-      transArr.push(index.randomHash)
-      dotFormat=dotFormat.toString()
-      response_graphviz.push(dotFormat);
-    })
-    //now render to screen
-    console.log("rendering screen ejs")
-    console.log("transArr is "+transArr)
-    res.render("viz.ejs",{
-      transArr:transArr,
-      block_num:"1000",
-      num_block:"10",
-      graph_formats: response_graphviz
-    });
-  }
-}
 
 app.get("/graphvizInvocation",function(req,res){ // graphviz for single EVM invocation
   var transaction = (req.query.transaction).toString()
   var transArr=[];
   transArr.push(transaction);
   console.log("#######################    GraphViz Invocation called for "+ transaction);
-  find_depth_in_db(transArr,graphvizCallbackEVMInvocation,res)
+  var graphvizCallbackEVMInvocation = graphviz_routes.graphvizCallbackEVMInvocation;
+  var find_depth_in_db_var = helper_functions.find_depth_in_db;
+  find_depth_in_db_var(transArr,graphvizCallbackEVMInvocation,res)
 })
 
-var graphvizCallbackEVMInvocation = function(contractTransList,found_trans,res){
-  console.log("graphvizCallbackEVMInvocation called")
-  var response_graphviz = []; // to store results
-  var transArr = [];
-  found_trans.forEach(function(index){
-    var dotFormat = index.graph;
-    console.log(dotFormat)
-    transArr.push(index.randomHash)
-    dotFormat=dotFormat.toString()
-    response_graphviz.push(dotFormat);
-  })
-  //now render to screen
-  console.log("rendering screen ejs")
-  console.log("transArr is "+transArr)
-  res.render("viz.ejs",{
-    transArr:transArr,
-    block_num:"1000",
-    num_block:"10",
-    graph_formats: response_graphviz
-  });
-}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
                                   // end of graphviz route
 ////////////////////////////////////////////////////////////////////////////////
-
+const sigmajs_routes = require("./sigmajs_routes.js")
 app.get("/sigmatransaction",function(req,res){
   var transaction = req.query.transaction; // should be one singular transaction
   var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
@@ -216,51 +165,17 @@ app.get("/sigmatransaction",function(req,res){
   transaction=transaction.toString();
   var transArr =[];
   transArr.push(transaction);
-  find_in_db(transArr,single_sigma_callback,res,null,null,null,isLabel)
+  var find_in_db_var2 = helper_functions.find_in_db;
+  var single_sigma_callback = sigmajs_routes.single_sigma_callback;
+  find_in_db_var2(transArr,single_sigma_callback,res,null,null,null,isLabel)
 })//end of app get sigmatransaction
 
-var single_sigma_callback = function(transArr,found_trans,res,_a,_b,_c,isLabel){ //_a,_b,_c are dummy variables
-  //find in db will either find an empty db or the transaction
-  var response_sigma=[];
-  if(found_trans.length==0){//there was nothing found
-    res.send("refresh shortly")
-    graph_gen_for_contract.gen_graph_promise(transArr)//this function takes an array
-  }
-  else{
-    //now combine, remember there many be more than one since a transaction has several depth levels
-    var multiobj = generateSigmaCombinedObject(found_trans) //think problem here! with a jump edge or something
-    var transArr=[];
-    found_trans.forEach(function(each){
-      transArr.push(each.randomHash)
-    })
-    console.log("transArr "+transArr)
-    var titleTrans="";
-    for(var index=0; index < transArr.length;index++){
-      if(transArr[index]!=null){
-        titleTrans=transArr[index].slice(0,transArr.length-3)
-        break;
-      }
-    }
-    console.log("titleTrans is "+titleTrans)
-    console.log("islabel is "+isLabel)
-    if(isLabel == undefined){
-      isLabel =0
-    }
-    res.render("sigmasingletransaction.ejs",{
-      isLabel:isLabel,
-      titleTrans:titleTrans,
-      transArr:transArr,
-      num_block:"10000", //dummy values so we can use sigmamulti template
-      block_num:"100",
-      sigmaobj_multi:multiobj
-    })
-  }
-}
+
 
 app.get("/sigmamulti",function(req,renderres){
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
-  console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
+  console.log("====================\n getmultiblock has been called for \n==========="+startblock +" to "+endblock)
   var block_list =[];
   var transHashList=[];// array to store transaction hashes from each of the blocks!
   //make list of blocks for which to get the transactions hashes
@@ -276,9 +191,11 @@ app.get("/sigmamulti",function(req,renderres){
     })
   }
   else{ //otherwise its the mainnet
+    const constructURLs = helper_functions.constructURLs
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
   }
   //for request
+  /*
   function httpGet(url, callback) {
     const options = {
       url :  url,
@@ -299,7 +216,8 @@ app.get("/sigmamulti",function(req,renderres){
     })
     return urls;
   }
-
+  */
+  var httpGet = helper_functions.httpGet;
   async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
     if (err) return console.log(err);
     for(var index=0; index<res.length;index++){
@@ -314,7 +232,9 @@ app.get("/sigmamulti",function(req,renderres){
     transHashList.forEach(function(each){
       console.log(each)
     })
-    find_in_db(transHashList,single_sigma_callback,renderres);
+    var find_in_db_3 = helper_functions.find_in_db;
+    var single_sigma_callback = sigmajs_routes.single_sigma_callback;
+    find_in_db_3(transHashList,single_sigma_callback,renderres);
   });
 })
 
@@ -324,7 +244,7 @@ app.get("/sigmamulti",function(req,renderres){
 
 
 //view all trans from that same block
-app.get('/sigmamult', function(req, res) {
+app.get('/sigmamult', function(req, res) { // consider getting rid of this route
   var block_num = req.query.block_num; // read in from URL
   var num_block = req.query.num_block;
   var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
@@ -397,12 +317,12 @@ var sigmaMultiCallback = function(foundDB, reqBlockArray){
   })
 }
 
-
+/*
 function generateSigmaCombinedObject(items){
-  /*
-    this function takes all the items returned from the database and coalates them into one multiobj
-    which can be passed to the sigma library on the front end
-  */
+
+  //  this function takes all the items returned from the database and coalates them into one multiobj
+  //  which can be passed to the sigma library on the front end
+
   var multiobj={//object to store coagulated results
     nodes:[],
     edges:[]
@@ -505,7 +425,7 @@ function generateRandomColours(){
   edgecolour=edgecolour.concat(rgb1.toString(),",",rgb2.toString(),",",rgb1.toString(),")");
   return edgecolour //returns in the form "rgb(x,y,z)"
 }
-
+*/
 function add_blocks_graph_to_db(block_num,num_block){
   graph_gen.gen_graph_promise(block_num,num_block).then(function(res){
     console.log("promise finished");
@@ -525,7 +445,8 @@ app.get("/sigmacontract",function(req,res){
   var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Sigma contract view request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
+  var lookupEtherscan = helper_functions.lookupEtherscan;
+  lookupEtherscan(viewContract,_startBlock,_endBlock,testORmain).then(function(contractTransList,err){
     if(err){
       console.log("there was an error with etherscan api lookup")
       res.send("etherscan error!!")
@@ -533,10 +454,12 @@ app.get("/sigmacontract",function(req,res){
     if(contractTransList.length==0){
       res.send("Etherscan did not find any results for that search, please check your parameters and try again!")
     }
+    var find_in_db = helper_functions.find_in_db;
+    var sigmacontractCallback = sigmajs_routes.sigmacontractCallback;
     find_in_db(contractTransList,sigmacontractCallback,res,viewContract,_startBlock,_endBlock);
   })
 })
-
+/*
 var sigmacontractCallback = function(contractTransList,found_trans,res,viewContract,_startBlock,_endBlock){ // called from find_in_db
   var found_trans_list=[];
   found_trans.forEach(function(trans){//get transactions number from each object found
@@ -569,18 +492,18 @@ var sigmacontractCallback = function(contractTransList,found_trans,res,viewContr
       })
     }
 }
+*/
 
 
 
-
-
+/*
 var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
-  /*
-    takes in the contract address, the start block and the end block and
-    returns an array of the transactions that the contract was involved within
-    those blocks
-    function used by /sigmacontract, /gtcontract
-  */
+
+    //takes in the contract address, the start block and the end block and
+    //returns an array of the transactions that the contract was involved within
+    //those blocks
+    //function used by /sigmacontract, /gtcontract
+
   return new Promise(function(resolve,reject){
     if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
       var etherscanAPIURL = "http://ropsten.etherscan.io/api"
@@ -632,7 +555,7 @@ var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
       })
   })
 }
-
+*/
 
 
 
@@ -641,6 +564,9 @@ var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
 //               graph tool contract view
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 app.get("/gtcontract",function(req,res){
   //graph -tools per contract over a particular num blocks - start to end- working and good!
   // testnet: http://localhost:3005/gtcontract?contract=0x45fcd0d6abfa60031e1cf4148780c227ecb0b531&start=1281186&end=1285969
@@ -651,26 +577,28 @@ app.get("/gtcontract",function(req,res){
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  gtcontract request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-
+  var lookupEtherscan = helper_functions.lookupEtherscan;
   lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
     if(err){
       console.log("there was an error with etherscan api lookup")
       res.send("etherscan error!!")
     }
+    const find_in_db = helper_functions.find_in_db;
+    const callback = graph_tool_routes.callback;
     find_in_db(contractTransList,callback,res,viewContract,_startBlock.toString(),_endBlock.toString());
   })
 })
 
 
 
-
+/*
 var callback = function(contractTransList,found_trans,res){
-  /*
-    This function is used by many graph-tool routes. It is typically called after find_in_db(),
-    found_trans is an array of the items returned from mongodb
-    contractTransList is the list of transactions that are requested from the brower
-    res is the express response
-  */
+
+  //  This function is used by many graph-tool routes. It is typically called after find_in_db(),
+  //  found_trans is an array of the items returned from mongodb
+  //  contractTransList is the list of transactions that are requested from the brower
+  //  res is the express response
+
   var found_trans_list=[];
   found_trans.forEach(function(trans){//get transactions number from each object found
     found_trans_list.push(trans.transaction_no);
@@ -715,12 +643,15 @@ var callback = function(contractTransList,found_trans,res){
     });
   }
 }
+*/
 
+
+/*
 function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blockNum,_isLabel){
-  /*
-    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
-    it places them in a list. Then callback is then called!
-  */
+
+  //  find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
+  //  it places them in a list. Then callback is then called!
+
   // console.log("find in db called with islabel "+_isLabel)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
@@ -740,6 +671,7 @@ function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blo
   })
   .fail(function(err) {console.log(err)});
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -750,6 +682,8 @@ app.get("/gttransaction",function(req,res){ //gets the graph-tools representatio
   transaction=transaction.toString()
   var transArr = [];
   transArr.push(transaction);
+  const find_in_db = helper_functions.find_in_db;
+  const callback = graph_tool_routes.callback;
   find_in_db(transArr,callback,res); //uses contractView to render
 })
 
@@ -758,10 +692,12 @@ app.get("/gttransaction",function(req,res){ //gets the graph-tools representatio
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //returns raw geth debug_traceTransaction output, primarly used for debugging
+// const misc_routes = require("misc_routes.js")
 app.get("/checktrans",function(req,res){
   var transaction = req.query.transaction;
   transaction=transaction.toString()
   console.log("#################\nThe sanity checker has been called for the transaction: \n ########################\n"+transaction)
+  var checkTrans = misc_routes.checkTrans;
   checkTrans(transaction).then(function (result) {
     // console.log("rendering"+result)
     if(result===undefined){
@@ -775,7 +711,7 @@ app.get("/checktrans",function(req,res){
       console.log("there was an error in the sendAsync function: "+err)
   });
 })
-
+/*
 var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/questions/34736705/how-to-promisify-this-function-nodejs
   return new Promise(function(resolve,reject){
     web3.currentProvider.sendAsync({
@@ -797,7 +733,7 @@ var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/qu
       );
   })
 }
-
+*/
 
 
 
@@ -810,9 +746,12 @@ app.get("/getgraphml",function(req,res){
   console.log("getting graphml for "+transaction)
   var checkForgml = [];
   checkForgml.push(transaction);
+  const graphmlcallback = misc_routes.graphmlcallback;
+  const find_in_db = helper_functions.find_in_db;
   find_in_db(checkForgml,graphmlcallback,res)
 })//end of route
 //callback function for /getgraphml
+/*
 var graphmlcallback= function(contractTransList,found_trans,res){//contractTransList will not be used, just there to reuse find_in_db
   //extract graphml from db response found_trans
   var graphmlres=found_trans[0].graphml
@@ -823,6 +762,7 @@ var graphmlcallback= function(contractTransList,found_trans,res){//contractTrans
     graphml: graphmlres
   })
 }
+*/
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -858,9 +798,11 @@ app.get("/gtgetmultiblock",function(req,renderres){
     })
   }
   else{ //otherwise its the mainnet
+    const constructURLs = helper_functions.constructURLs;
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
   }
   //for request
+  /*
   function httpGet(url, callback) {
     const options = {
       url :  url,
@@ -881,7 +823,8 @@ app.get("/gtgetmultiblock",function(req,renderres){
     })
     return urls;
   }
-
+  */
+  const httpGet = helper_functions.httpGet;
   async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
     if (err) return console.log(err);
     for(var index=0; index<res.length;index++){
@@ -896,6 +839,8 @@ app.get("/gtgetmultiblock",function(req,renderres){
     transHashList.forEach(function(each){
       console.log(each)
     })
+    const find_in_db = helper_functions.find_in_db;
+    const callback = graph_tool_routes.callback;
     find_in_db(transHashList,callback,renderres);
   });
 });//end of route
@@ -970,15 +915,18 @@ app.get("/depthoftransaction",function(req,res){
   console.log("depth of transsaction called for "+transaction)
   var depthTransArr =[];
   depthTransArr.push(transaction)
+  const find_depth_in_db = helper_functions.find_depth_in_db;
+  const single_sigma_callback = sigmajs_routes.single_sigma_callback;
   find_depth_in_db(depthTransArr,single_sigma_callback,res)
 
 })
 
+/*
 function find_depth_in_db(contractTransList,callback,res){
-  /*
-    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
-    it places them in a list. Then callback is then called!
-  */
+
+//    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
+  //  it places them in a list. Then callback is then called!
+
   // console.log("find in db called with "+contractTransList)
   mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
       .then(function(db){
@@ -998,6 +946,7 @@ function find_depth_in_db(contractTransList,callback,res){
   })
   .fail(function(err) {console.log(err)});
 }
+*/
 
 ///new route to delete tranactions from db
 app.get("/deleteFromDB",function(req,res){
@@ -1009,7 +958,7 @@ app.get("/deleteFromDB",function(req,res){
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Delete Request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to delete for : "+viewContract+" between "+_startBlock + " and "+_endBlock);
-
+  const lookupEtherscan = helper_functions.lookupEtherscan;
   lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
     if(err){
       console.log("there was an error with etherscan api lookup")
