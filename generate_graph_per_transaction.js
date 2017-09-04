@@ -46,6 +46,7 @@ var gen_graph_prom = function(passed_trans_list,displayGraphs){
 
 function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to this interation thanks to closure
  console.log("web3call for "+contracts_trans_list[int_trans])
+  if(!web3.isConnected()){console.log("error! web3 not connected")};
  web3.currentProvider.sendAsync({
      method: "debug_traceTransaction",
      params: [contracts_trans_list[int_trans],{disableStorage: true, disableMemory:true}], // change this line for an individual contract viz
@@ -54,7 +55,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
      function(err,result){
        if(result.result!=undefined && result.result.structLogs.length>0){
          console.log("Was able to get debug.traceTransaction!")
-         // console.log(JSON.stringify(result.result))
+         console.log(JSON.stringify(result.result))
          /*
          1. sort into an array with the appropraite depths
          2. trace and modify json to create json that includes instructions for graph format generator
@@ -169,7 +170,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
              graph_depth,
              tempname); //passing block number, transaction_no, graph output
 
-             // console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
+             console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
              // console.log(graphtools_color)
              // console.log(graphtools_label)
 

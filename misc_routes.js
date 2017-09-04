@@ -23,6 +23,7 @@ function establishGethConnection(gethURL){
 }
 
 var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/questions/34736705/how-to-promisify-this-function-nodejs
+  console.log("checkTrans called")
   return new Promise(function(resolve,reject){
     web3.currentProvider.sendAsync({
         method: "debug_traceTransaction",
@@ -36,7 +37,7 @@ var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/qu
             else{
               console.log("got result!!")
               var trace= JSON.stringify(result.result);
-              console.log(trace)
+              // console.log(trace)
               resolve(trace)
             }
           }
