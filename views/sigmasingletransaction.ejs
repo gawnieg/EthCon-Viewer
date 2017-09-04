@@ -21,7 +21,7 @@
 <body>
 <div id="headr">
 <body style="background-color:#000000">
-<h1 style="color:white;"> You are visualising a SigmaJS representation of <%=titleTrans%> </h1>
+<h1 id = "header1" style="color:white;"> You are visualising a SigmaJS representation of <%=titleTrans%> </h1>
 </div>
 <br>
 
@@ -37,6 +37,16 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 var isLabel = getParameterByName('isLabel'); // "lorem"
+var startblock = getParameterByName("startblock")
+var endblock = getParameterByName("endblock")
+if(endblock != undefined){
+      var mainheader = document.getElementById("header1")
+      var mainheader_text = "You are visualising a SigmaJS representation of transactions in blocks ";
+      mainheader_text=mainheader_text.concat(startblock)
+      mainheader_text=mainheader_text.concat(" to ")
+      mainheader_text=mainheader_text.concat(endblock)
+      mainheader.innerHTML =mainheader_text
+}
 </script>
 <script>
 //this is working

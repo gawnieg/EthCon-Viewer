@@ -150,6 +150,7 @@ function constructURLs(block_list){ // function that builds the etherscan lookup
   var urls =[];
   block_list.forEach(function(bn){
     var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
+    console.log("adding url "+eachURL)
     urls.push(eachURL);
   })
   return urls;
