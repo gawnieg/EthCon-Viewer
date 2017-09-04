@@ -17,7 +17,7 @@ module.exports={
 var single_sigma_callback = function(transArr,found_trans,res,_a,_b,_c,isLabel){ //_a,_b,_c are dummy variables
   //find in db will either find an empty db or the transaction
   var response_sigma=[];
-  if(found_trans.length==0){//there was nothing found
+  if(found_trans.length<transArr.length){//there was nothing found -- was found_trans.length ==0
     res.send("refresh shortly")
     graph_gen_for_contract.gen_graph_promise(transArr)//this function takes an array
   }

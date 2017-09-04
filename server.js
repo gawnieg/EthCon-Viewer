@@ -219,196 +219,6 @@ app.get("/sigmamulti",function(req,renderres){
 
 
 
-
-//view all trans from that same block
-app.get('/sigmamult', function(req, res) { // consider getting rid of this route
-  var block_num = req.query.block_num; // read in from URL
-  var num_block = req.query.num_block;
-  var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
-  console.log("-----------NEW BROWSER REQUEST FOR SIGMAJS MULT VIZ-------------")
-  console.log("received block_num:" + block_num +" ,num_block:" + num_block);
-
-  var upper_block_limit = parseInt(block_num) + parseInt(num_block);
-  var reqBlockArray=[];//array of strings for storing requested block numbers
-  for(var b = parseInt(block_num); b < upper_block_limit; b++){
-      reqBlockArray.push(b.toString())
-  }
-    mp.MongoClient.connect(url)
-      .then(function(db){
-              return db.collection('test')
-                  .then(function(col) {
-                      return col.find({block_num : {$in: reqBlockArray}}).toArray()
-                          .then(function(items) {
-                            console.log("found "+items.length+" items for this block in DB!")
-                            //if we need to get blocks then this if will be true
-                            if(items.length<reqBlockArray.length){
-                              console.log("but need "+reqBlockArray.length + "blocks")
-                              var foundBlocksInDB = [];//to store what is found in db
-                              items.forEach(function(block){
-                                  foundBlocksInDB.push(block);
-                              })
-                              db.close().then(sigmaMultiCallback(foundBlocksInDB,reqBlockArray)) // callback that see's which blocks are needed and runs add_blocks_graph_to_db
-                              .then(function (){
-                                  res.send("refresh page shortly")
-                                });
-                            }
-                            //else if we found enough items in the db
-                            else if (items.length>= reqBlockArray.length) {
-                              console.log("found sufficient items, gonna coagulate now..")
-                              var multiobj = generateSigmaCombinedObject(items)
-                              res.render("sigmamulti.ejs",{
-                                num_block:num_block,
-                                block_num:block_num,
-                                sigmaobj_multi:multiobj
-                              })
-                            }
-                            //else items ==null then go away and find each block
-                            else{
-                              console.log("found nothing in DB so adding block no. "+block_num +" to db ");
-                              reqBlockArray.forEach(function(blockn){
-                                add_blocks_graph_to_db(blockn,1);// 1 is blank does nt matter what
-                              })
-                            }
-                          })
-              })
-  })
-  .fail(function(err) {console.log(err)});
-
-
-});//end of express route
-
-var sigmaMultiCallback = function(foundDB, reqBlockArray){
-  var found_block_list=[];
-  foundDB.forEach(function(block){//get transactions number from each object found
-    found_block_list.push(block.block_num);
-  })
-  Array.prototype.diff = function(a){
-    return this.filter(function(i){
-      return a.indexOf(i)<0;
-    });
-  };
-  var needToFindTrans=reqBlockArray.diff(found_block_list) //need.diff(haveindb)
-  console.log("need to find:" + needToFindTrans)
-  needToFindTrans.forEach(function(block){
-    add_blocks_graph_to_db(block,1);
-  })
-}
-
-/*
-function generateSigmaCombinedObject(items){
-
-  //  this function takes all the items returned from the database and coalates them into one multiobj
-  //  which can be passed to the sigma library on the front end
-
-  var multiobj={//object to store coagulated results
-    nodes:[],
-    edges:[]
-  };
-  //NOTE since some ID's are missing since JUMPDEST is missing. must take different approach to lenght
-  // to avoid conflict on naming id's
-  var realLenghtOfNodes=[];
-  for(var rl=0;rl<items.length;rl++){
-    realLenghtOfNodes.push(0);//fill with zeroes!
-  }
-  for(var indexl=0;indexl<items.length;indexl++){ //for each graph passed
-    var r_sigma = items[indexl].sigmaobj;
-    if(r_sigma!=null){ // if the graph exists
-      // console.log("finding real length "+indexl)
-      for(var findl=0;findl<r_sigma.nodes.length;findl++){
-        var tempnodeobj=parseInt(r_sigma.nodes[findl].id);
-        if(tempnodeobj>realLenghtOfNodes[indexl]){
-          realLenghtOfNodes[indexl]=tempnodeobj; //set the highest seen to that index in the array
-        }
-      }
-    }
-  }
-  // console.log("legnth of first array is "+items[0].sigmaobj.nodes.length)
-  console.log("realLenghtOfNodes is :"+realLenghtOfNodes)
-  //add one to all of realLenghtOfNodes so that none are the same
-  for(var p1=0;p1<realLenghtOfNodes.length;p1++){
-    realLenghtOfNodes[p1]=  realLenghtOfNodes[p1]+1;
-  }
-  //now for each item passed, put into multiobj with appropraite index
-  for(var i=0;i<items.length;i++){
-    //find max value in each r_sigma
-    if(items[i].sigmaobj!=null){
-      var r_sigma = items[i].sigmaobj; // no toString needed since this is an object
-      //for first block just copy over each object to multiobj
-      if(i==0){
-        for(var i_nodes=0;i_nodes<r_sigma.nodes.length;i_nodes++){
-          var tempnodeobj = r_sigma.nodes[i_nodes];
-          multiobj.nodes.push(tempnodeobj); // push to combined results object
-        }
-        for(var i_edges=0;i_edges<r_sigma.edges.length;i_edges++){
-          var tempnodeobj=r_sigma.edges[i_edges];
-          multiobj.edges.push(tempnodeobj);
-        }
-      }
-      //if second, third fourth,... need to add offset index to each
-      if(i>0){
-        //add offset length to nodes
-        var additional_length_node=0; //this is the offset
-        for(var ii=0;ii<i;ii++){ // for the remaining items found in the db
-          additional_length_node+=realLenghtOfNodes[ii] // for each of the ones done so far, add onto
-        }
-        // console.log("additional_length_node on i: "+i+" is "+additional_length_node);
-        for(var iii=0; iii<r_sigma.nodes.length;iii++){
-          var newnodeid= parseInt(r_sigma.nodes[iii].id) +additional_length_node;
-          //r_sigma.nodes[iii].id = newnodeid.toString();
-          // console.log("newnodeid is "+ newnodeid)
-          //now push to first object
-          var oldx = r_sigma.nodes[iii].x;
-          var oldy = r_sigma.nodes[iii].y;
-          var oldlabel = r_sigma.nodes[iii].label;
-          //set colour of each contract differently
-          var oldcolor=r_sigma.nodes[iii].color;
-          var oldsize = r_sigma.nodes[iii].size;
-          multiobj.nodes.push({id: (newnodeid.toString()), x:oldx, y:oldy,label:oldlabel,color:oldcolor,size:oldsize});
-        }
-        //setting random colours
-        var randomColours=[]
-        for(var colourIndex=0; colourIndex<=i;colourIndex++){
-          var newColour = generateRandomColours()
-          randomColours.push(newColour);//get random colour and add to array!
-        }
-        //now add to each edge additional_length_node and then push to first object
-        for(var iiii=0;iiii<r_sigma.edges.length;iiii++){
-          var newsource = parseInt(r_sigma.edges[iiii].source)+additional_length_node;
-          var newtarget = parseInt(r_sigma.edges[iiii].target)+ additional_length_node;
-          var newid = (r_sigma.edges[iiii].id).concat("_",i.toString())
-          if(i==1){
-            var edgecolour = "rgb(191,65,65)";//red?
-          }
-          else if(i==2){
-            var edgecolour = "rgb(191,182,65)";//gold colour
-          }
-          else{
-            var edgecolour=randomColours[i];//get from array built earlier
-            // var edgecolour = "rgb(50,50,30)";//default colour
-          }
-          multiobj.edges.push({id: newid.toString(),source:newsource.toString(),target:newtarget.toString(),color:edgecolour});
-        }
-      }
-    }
-  }
-  return multiobj;
-}
-
-function generateRandomColours(){
-  var rgb1= Math.floor(Math.random()*(255));
-  var rgb2= Math.floor(Math.random()*(255));
-  var rgb3= Math.floor(Math.random()*(255));
-  var edgecolour ="rgb(";
-  edgecolour=edgecolour.concat(rgb1.toString(),",",rgb2.toString(),",",rgb1.toString(),")");
-  return edgecolour //returns in the form "rgb(x,y,z)"
-}
-*/
-function add_blocks_graph_to_db(block_num,num_block){
-  graph_gen.gen_graph_promise(block_num,num_block).then(function(res){
-    console.log("promise finished");
-  })
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 //                Sigma js contract view
@@ -436,102 +246,8 @@ app.get("/sigmacontract",function(req,res){
     find_in_db(contractTransList,sigmacontractCallback,res,viewContract,_startBlock,_endBlock);
   })
 })
-/*
-var sigmacontractCallback = function(contractTransList,found_trans,res,viewContract,_startBlock,_endBlock){ // called from find_in_db
-  var found_trans_list=[];
-  found_trans.forEach(function(trans){//get transactions number from each object found
-    found_trans_list.push(trans.transaction_no);
-  })
-  console.log("Callback: there were: "+found_trans.length + "items found in the db");
-  console.log("Callback: we need a min of "+contractTransList.length+" items..")
-  Array.prototype.diff = function(a){
-    return this.filter(function(i){
-      return a.indexOf(i)<0;
-    });
-  };
-  var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
-  if(needToFindTrans.length){ //if there are ones that need to be generated
-    console.log("Callback: need to carry out graph gen for these: ");
-    needToFindTrans.forEach(function(each){    //printing nicely
-      console.log(each)
-    })
-    graph_gen_per_transaction.gen_graph_promise(needToFindTrans)
-  }
-  //if all the pictures are in the db
-  else{
-      console.log("found sufficient items, gonna coagulate now..")
-      var multiobj = generateSigmaCombinedObject(found_trans)
-      res.render("sigmacontract.ejs",{
-        contract:viewContract,
-        startBlock:_startBlock,
-        endBlock:_endBlock,
-        sigmaobj_multi:multiobj
-      })
-    }
-}
-*/
 
 
-
-
-var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
-
-    //takes in the contract address, the start block and the end block and
-    //returns an array of the transactions that the contract was involved within
-    //those blocks
-    //function used by /sigmacontract, /gtcontract
-
-  return new Promise(function(resolve,reject){
-    if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
-      var etherscanAPIURL = "http://ropsten.etherscan.io/api"
-    }
-    else{
-      var etherscanAPIURL = 'http://api.etherscan.io/api';
-    }
-    console.log("etherscanAPIURL is "+etherscanAPIURL);
-    const options = {
-      method: 'GET',
-      uri: etherscanAPIURL,
-      qs:{
-        module:"account",
-        action:"txlist",
-        address:viewContract,
-        startblock:_startBlock,
-        endblock:_endBlock,
-        sort:"asc",
-        apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
-      },
-      json: true //essential to getting a usebale result!
-    }
-    rp(options)
-      .then(function (response) {
-        // Request was successful, use the response object at will
-        var etherscanResponse = response.result;
-        var status = response.status;
-        console.log("Etherscan status: "+status)
-        if(status!=0){// if the status is equal to one
-          var contractTransList =[]; // this is the list of transactions that need to be found,
-          // given the contract, the starting block and the end block
-          etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
-            contractTransList.push(trans.hash)
-          })
-          console.log("contractTransList is :")
-          contractTransList.forEach(function(each){
-            console.log(each)
-          })
-          resolve(contractTransList);
-        }
-        else{// the status was zero!
-          console.log("rejecting as no results found")
-          reject([]) //returns an empty array!
-        }
-      })
-      .catch(function (err) {
-        // Something bad happened, handle the error
-        console.log("SERVER ERROR: "+err)
-      })
-  })
-}
 
 
 
@@ -567,87 +283,6 @@ app.get("/gtcontract",function(req,res){
 
 
 
-/*
-var callback = function(contractTransList,found_trans,res){
-
-  //  This function is used by many graph-tool routes. It is typically called after find_in_db(),
-  //  found_trans is an array of the items returned from mongodb
-  //  contractTransList is the list of transactions that are requested from the brower
-  //  res is the express response
-
-  var found_trans_list=[];
-  found_trans.forEach(function(trans){//get transactions number from each object found
-    found_trans_list.push(trans.transaction_no);
-  })
-  console.log("Callback: there were: "+found_trans.length + "items found in the db");
-  console.log("Callback: we need a min of "+contractTransList.length+" items..")
-  Array.prototype.diff = function(a){
-    return this.filter(function(i){
-      return a.indexOf(i)<0;
-    });
-  };
-  var needToFindTrans=contractTransList.diff(found_trans_list) //need.diff(haveindb)
-  if(needToFindTrans.length){ //if there are ones that need to be generated
-    console.log("Callback: need to carry out graph gen for these: ");
-    //printing nicely
-    needToFindTrans.forEach(function(each){
-      console.log(each)
-    })
-    graph_gen_for_contract.gen_graph_promise(needToFindTrans)
-  }
-  //if all the pictures are in the db
-  else{
-    //get pictures random string names
-    //randomHash is actually the name of the pciture in public/pics
-    var picsToView = [];
-    found_trans.forEach(function(index){
-      picsToView.push(index.randomHash);
-    })
-    function uniq(a) {
-       return Array.from(new Set(a));
-    }
-
-    //now render to screen
-    picsToView = uniq(picsToView) //get rid of duplicates happening
-    console.log("picsToView: ")
-    picsToView.forEach(function(each){
-      console.log(each)
-    })
-    res.render("contractView.ejs",{
-      picsToView:picsToView,
-      testORmain:testORmain
-    });
-  }
-}
-*/
-
-
-/*
-function find_in_db(contractTransList,callback,res,_contractName,_numBlocks,_blockNum,_isLabel){
-
-  //  find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
-  //  it places them in a list. Then callback is then called!
-
-  // console.log("find in db called with islabel "+_isLabel)
-  mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
-      .then(function(db){
-              return db.collection('test')
-                  .then(function(col) {
-                      return col.find({transaction_no : {$in: contractTransList}}).sort({transaction_no:1,depthLevel:1}).toArray()
-                          .then(function(items) {
-                              console.log("db replied with "+items.length + "items")
-                              var found_trans =[]
-                              items.forEach(function(item){
-                                found_trans.push(item);//the whole object
-                              })
-
-                              db.close().then(callback(contractTransList,found_trans,res,_contractName,_numBlocks,_blockNum,_isLabel));
-                          })
-              })
-  })
-  .fail(function(err) {console.log(err)});
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -726,19 +361,6 @@ app.get("/getgraphml",function(req,res){
   const find_in_db = helper_functions.find_in_db;
   find_in_db(checkForgml,graphmlcallback,res)
 })//end of route
-//callback function for /getgraphml
-/*
-var graphmlcallback= function(contractTransList,found_trans,res){//contractTransList will not be used, just there to reuse find_in_db
-  //extract graphml from db response found_trans
-  var graphmlres=found_trans[0].graphml
-  // graphmlres=JSON.stringify(graphmlres)
-  console.log("graphml is"+ graphmlres)
-  console.log("rendering response");
-  res.render("graphmlformat.ejs",{
-    graphml: graphmlres
-  })
-}
-*/
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -746,12 +368,7 @@ var graphmlcallback= function(contractTransList,found_trans,res){//contractTrans
 //NEW ROUTE!!
 //###################################################################
 
-//this function will be run for when we are running from the testnet to find the transactions in a block
-var getTransactionsFromBlock = function(block){
-  var block_result=  web3.eth.getBlock(block);
-  // console.log("block_result"+JSON.stringify(block_result))
-  return block_result.transactions;
-}
+
 
 
 app.get("/gtgetmultiblock",function(req,renderres){
@@ -777,29 +394,6 @@ app.get("/gtgetmultiblock",function(req,renderres){
     const constructURLs = helper_functions.constructURLs;
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
   }
-  //for request
-  /*
-  function httpGet(url, callback) {
-    const options = {
-      url :  url,
-      json : true
-    };
-    request(options,
-      function(err, res, body) {
-        console.log("calling callback")
-        callback(err, body);
-      }
-    );
-  }
-  function constructURLs(block_list){ // function that builds the etherscan lookup urls from the blocknumbers passed
-    var urls =[];
-    block_list.forEach(function(bn){
-      var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
-      urls.push(eachURL);
-    })
-    return urls;
-  }
-  */
   const httpGet = helper_functions.httpGet;
   async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
     if (err) return console.log(err);
@@ -898,33 +492,6 @@ app.get("/depthoftransaction",function(req,res){
 
 })
 
-/*
-function find_depth_in_db(contractTransList,callback,res){
-
-//    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
-  //  it places them in a list. Then callback is then called!
-
-  // console.log("find in db called with "+contractTransList)
-  mp.MongoClient.connect("mongodb://127.0.0.1:27017/trans")
-      .then(function(db){
-              return db.collection('test')
-                  .then(function(col) {
-                      return col.find({randomHash : {$in: contractTransList}}).sort({transaction_no:1,depthLevel:1}).toArray()
-                          .then(function(items) {
-                              console.log("db replied with "+items.length + "items")
-                              var found_trans =[]
-                              items.forEach(function(item){
-                                found_trans.push(item);//the whole object
-                              })
-
-                              db.close().then(callback(contractTransList,found_trans,res));
-                          })
-              })
-  })
-  .fail(function(err) {console.log(err)});
-}
-*/
-
 ///new route to delete tranactions from db
 app.get("/deleteFromDB",function(req,res){
   var deleteTransFromDB = require("./delete_from_db.js")
@@ -961,4 +528,75 @@ function Create2DArray(rows) {
     arr[i] = [];
   }
   return arr;
+}
+
+var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
+
+    //takes in the contract address, the start block and the end block and
+    //returns an array of the transactions that the contract was involved within
+    //those blocks
+    //function used by /sigmacontract, /gtcontract
+
+  return new Promise(function(resolve,reject){
+    if(testORmain=="test"){ // if the test parameter was passed into the program then use a different URL
+      var etherscanAPIURL = "http://ropsten.etherscan.io/api"
+    }
+    else{
+      var etherscanAPIURL = 'http://api.etherscan.io/api';
+    }
+    console.log("etherscanAPIURL is "+etherscanAPIURL);
+    const options = {
+      method: 'GET',
+      uri: etherscanAPIURL,
+      qs:{
+        module:"account",
+        action:"txlist",
+        address:viewContract,
+        startblock:_startBlock,
+        endblock:_endBlock,
+        sort:"asc",
+        apikey:"Y6CSG72GI246Q4TJXIC2QW9E6ID9G7XBA5" //same apikey for main and testnet
+      },
+      json: true //essential to getting a usebale result!
+    }
+    rp(options)
+      .then(function (response) {
+        // Request was successful, use the response object at will
+        var etherscanResponse = response.result;
+        var status = response.status;
+        console.log("Etherscan status: "+status)
+        if(status!=0){// if the status is equal to one
+          var contractTransList =[]; // this is the list of transactions that need to be found,
+          // given the contract, the starting block and the end block
+          etherscanResponse.forEach(function(trans){//for each transaction, push hash to array
+            contractTransList.push(trans.hash)
+          })
+          console.log("contractTransList is :")
+          contractTransList.forEach(function(each){
+            console.log(each)
+          })
+          resolve(contractTransList);
+        }
+        else{// the status was zero!
+          console.log("rejecting as no results found")
+          reject([]) //returns an empty array!
+        }
+      })
+      .catch(function (err) {
+        // Something bad happened, handle the error
+        console.log("SERVER ERROR: "+err)
+      })
+  })
+}
+
+//this function will be run for when we are running from the testnet to find the transactions in a block
+var getTransactionsFromBlock = function(block){
+  var block_result=  web3.eth.getBlock(block);
+  // console.log("block_result"+JSON.stringify(block_result))
+  return block_result.transactions;
+}
+function add_blocks_graph_to_db(block_num,num_block){
+  graph_gen.gen_graph_promise(block_num,num_block).then(function(res){
+    console.log("promise finished");
+  })
 }
