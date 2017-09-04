@@ -526,7 +526,7 @@ app.get("/deleteContractFromDB",function(req,res){
 app.get("/deleteTransactionFromDB",function(req,res){
   var deleteTransFromDB = require("./delete_from_db.js")
   //get URL parameters
-  var transaction = req.body.transaction;
+  var transaction = req.query.transaction;
   transaction=transaction.toString();
   var contractTransList =[];
   contractTransList.push(transaction);
