@@ -216,9 +216,6 @@ app.get("/sigmamulti",function(req,renderres){
 })
 
 
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 //                Sigma js contract view
@@ -248,8 +245,66 @@ app.get("/sigmacontract",function(req,res){
 })
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                          graph tool transaction
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+app.get("/gttransaction",function(req,res){ //gets the graph-tools representation for one transaction
 
+  var transaction = req.query.transaction;
+  transaction=transaction.toString()
+  var transArr = [];
+  transArr.push(transaction);
+  const find_in_db = helper_functions.find_in_db;
+  const callback = graph_tool_routes.callback;
+  find_in_db(transArr,callback,res); //uses contractView to render
+})
 
+//###################################################################
+//                        graph tool get multi block
+//###################################################################
+app.get("/gtgetmultiblock",function(req,renderres){
+  var startblock = req.query.startblock;
+  var endblock = req.query.endblock;
+  console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
+  //Find transaction in all of these blocks
+  var block_list =[];
+  var transHashList=[];// array to store transaction hashes from each of the blocks!
+  //make list of blocks for which to get the transactions hashes
+  for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
+    block_list.push(b);
+  }
+  if(testORmain=="test"){ // if it is the testnet that is running, then we have to get transactions from web3
+    block_list.forEach(function(each){
+      var transperblock=getTransactionsFromBlock(each);//function call to web3.eth.getBlock
+      transperblock.forEach(function(trans){
+        transHashList.push(trans)
+      })
+    })
+  }
+  else{ //otherwise its the mainnet
+    const constructURLs = helper_functions.constructURLs;
+    var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
+  }
+  const httpGet = helper_functions.httpGet;
+  async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
+    if (err) return console.log(err);
+    for(var index=0; index<res.length;index++){
+      //now exract data of each
+      var data_array = res[index].data;
+      for(var dataIndex=0; dataIndex<data_array.length;dataIndex++){
+        transHashList.push(data_array[dataIndex].hash.toString());
+      }
+    }
+    console.log("finished http requests")
+    console.log("transHashList is :");
+    transHashList.forEach(function(each){
+      console.log(each)
+    })
+    const find_in_db = helper_functions.find_in_db;
+    const callback = graph_tool_routes.callback;
+    find_in_db(transHashList,callback,renderres);
+  });
+});//end of route
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,9 +312,6 @@ app.get("/sigmacontract",function(req,res){
 //               graph tool contract view
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 app.get("/gtcontract",function(req,res){
   //graph -tools per contract over a particular num blocks - start to end- working and good!
   // testnet: http://localhost:3005/gtcontract?contract=0x45fcd0d6abfa60031e1cf4148780c227ecb0b531&start=1281186&end=1285969
@@ -284,19 +336,7 @@ app.get("/gtcontract",function(req,res){
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-app.get("/gttransaction",function(req,res){ //gets the graph-tools representation for one transaction
-
-  var transaction = req.query.transaction;
-  transaction=transaction.toString()
-  var transArr = [];
-  transArr.push(transaction);
-  const find_in_db = helper_functions.find_in_db;
-  const callback = graph_tool_routes.callback;
-  find_in_db(transArr,callback,res); //uses contractView to render
-})
 
 
 
@@ -364,56 +404,7 @@ app.get("/getgraphml",function(req,res){
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 
-//###################################################################
-//NEW ROUTE!!
-//###################################################################
 
-
-
-
-app.get("/gtgetmultiblock",function(req,renderres){
-  var startblock = req.query.startblock;
-  var endblock = req.query.endblock;
-  console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
-  //Find transaction in all of these blocks
-  var block_list =[];
-  var transHashList=[];// array to store transaction hashes from each of the blocks!
-  //make list of blocks for which to get the transactions hashes
-  for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
-    block_list.push(b);
-  }
-  if(testORmain=="test"){ // if it is the testnet that is running, then we have to get transactions from web3
-    block_list.forEach(function(each){
-      var transperblock=getTransactionsFromBlock(each);//function call to web3.eth.getBlock
-      transperblock.forEach(function(trans){
-        transHashList.push(trans)
-      })
-    })
-  }
-  else{ //otherwise its the mainnet
-    const constructURLs = helper_functions.constructURLs;
-    var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
-  }
-  const httpGet = helper_functions.httpGet;
-  async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
-    if (err) return console.log(err);
-    for(var index=0; index<res.length;index++){
-      //now exract data of each
-      var data_array = res[index].data;
-      for(var dataIndex=0; dataIndex<data_array.length;dataIndex++){
-        transHashList.push(data_array[dataIndex].hash.toString());
-      }
-    }
-    console.log("finished http requests")
-    console.log("transHashList is :");
-    transHashList.forEach(function(each){
-      console.log(each)
-    })
-    const find_in_db = helper_functions.find_in_db;
-    const callback = graph_tool_routes.callback;
-    find_in_db(transHashList,callback,renderres);
-  });
-});//end of route
 
 app.get("/gtdisplayall",function(req,res){ // route that finds all the file names in public pics. could be useful for presentation
   console.log("request to view all static images")
