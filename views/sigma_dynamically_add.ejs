@@ -133,11 +133,25 @@ window.onload=function(){
     }
     addNode()
     addNode()
-
+    var auto =0;
+    var nodes_on;
+    var edges_on;
     function activateAutoMode(){
-      console.log("AutoMode Enabled")
-      setInterval(addNode,2000)
-            setInterval(addEdge,2000)
+      if(auto==0){
+        console.log("AutoMode Enabled")
+        nodes_on=  setInterval(addNode,2000)
+        edges_on = setInterval(addEdge,2000)
+        auto =1;
+        return;
+      }
+      if(auto==1){
+        console.log("AutoMode Disabled")
+        clearInterval(nodes_on)
+        clearInterval(edges_on)
+        auto=0
+      }
+
+
     }
     //Start Force Atlas algorithm
     s.startForceAtlas2(forceConfig);
