@@ -204,9 +204,8 @@ app.get("/sigmamulti",function(req,renderres){
         transHashList.push(data_array[dataIndex].hash.toString());
       }
     }
-    console.log("finished http requests")
-    console.log("transHashList is :");
-    transHashList.forEach(function(each){
+    console.log("finished http requests and transHashList is :");
+    transHashList.forEach(function(each){//print nicely
       console.log(each)
     })
     var find_in_db_3 = helper_functions.find_in_db;
@@ -265,7 +264,7 @@ app.get("/gttransaction",function(req,res){ //gets the graph-tools representatio
 app.get("/gtgetmultiblock",function(req,renderres){
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
-  console.log("====================\n getmultiblock has been called for \n========================"+startblock +"to"+endblock)
+  console.log("====================\n getmultiblock has been called for \n========================"+startblock +" to "+endblock)
   //Find transaction in all of these blocks
   var block_list =[];
   var transHashList=[];// array to store transaction hashes from each of the blocks!
@@ -295,8 +294,7 @@ app.get("/gtgetmultiblock",function(req,renderres){
         transHashList.push(data_array[dataIndex].hash.toString());
       }
     }
-    console.log("finished http requests")
-    console.log("transHashList is :");
+    console.log("finished http requests and transHashList is :");
     transHashList.forEach(function(each){
       console.log(each)
     })
@@ -484,7 +482,7 @@ app.get("/depthoftransaction",function(req,res){
 })
 
 ///new route to delete tranactions from db
-app.get("/deleteFromDB",function(req,res){
+app.get("/deleteContractFromDB",function(req,res){
   var deleteTransFromDB = require("./delete_from_db.js")
   //get URL parameters
   var viewContract = req.query.contract; // read in from URL
@@ -493,7 +491,6 @@ app.get("/deleteFromDB",function(req,res){
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Delete Request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to delete for : "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  const lookupEtherscan = helper_functions.lookupEtherscan;
   lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
     if(err){
       console.log("there was an error with etherscan api lookup")
@@ -504,7 +501,21 @@ app.get("/deleteFromDB",function(req,res){
     res.send("Delete Request Sent for "+contractTransList)
   })
 })
+///new route to delete tranactions from db
+app.get("/deleteTransactionFromDB",function(req,res){
+  var deleteTransFromDB = require("./delete_from_db.js")
+  //get URL parameters
+  var transaction = req.body.transaction;
+  transaction=transaction.toString();
+  var contractTransList =[];
+  contractTransList.push(transaction);
 
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Delete Request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+  console.log("want to delete tranaction "+ transaction);
+  deleteTransFromDB.delete_array_of_trans(contractTransList);
+    // find_in_db(contractTransList,callback,res,viewContract,_startBlock.toString(),_endBlock.toString());
+  res.send("Delete Request Sent for "+contractTransList)
+})
 
 
 
