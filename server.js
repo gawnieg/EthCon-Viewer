@@ -175,13 +175,14 @@ app.get("/sigmatransaction",function(req,res){
 app.get("/sigmamulti",function(req,renderres){
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;
-  console.log("====================\n getmultiblock has been called for \n==========="+startblock +" to "+endblock)
+  console.log("====================\n sigmaJS getmultiblock has been called for \n==========="+startblock +" to "+endblock)
   var block_list =[];
   var transHashList=[];// array to store transaction hashes from each of the blocks!
   //make list of blocks for which to get the transactions hashes
   for(var b=parseInt(startblock);b<=parseInt(endblock);b++){
     block_list.push(b);
   }
+  console.log("block_list is "+block_list)
   if(testORmain=="test"){ // if it is the testnet that is running, then we have to get transactions from web3
     block_list.forEach(function(each){
       var transperblock=getTransactionsFromBlock(each);//function call to web3.eth.getBlock
@@ -191,8 +192,9 @@ app.get("/sigmamulti",function(req,renderres){
     })
   }
   else{ //otherwise its the mainnet
-    const constructURLs = helper_functions.constructURLs
+    // const constructURLs = helper_functions.constructURLs
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
+    console.log("urls are "+urls)
   }
   var httpGet = helper_functions.httpGet;
   async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
@@ -213,7 +215,15 @@ app.get("/sigmamulti",function(req,renderres){
     find_in_db_3(transHashList,single_sigma_callback,renderres);
   });
 })
-
+function constructURLs(block_list){ // function that builds the etherscan lookup urls from the blocknumbers passed
+  var urls =[];
+  block_list.forEach(function(bn){
+    var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
+    console.log("adding url "+eachURL)
+    urls.push(eachURL);
+  })
+  return urls;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -281,7 +291,7 @@ app.get("/gtgetmultiblock",function(req,renderres){
     })
   }
   else{ //otherwise its the mainnet
-    const constructURLs = helper_functions.constructURLs;
+    // const constructURLs = helper_functions.constructURLs;
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
   }
   const httpGet = helper_functions.httpGet;
