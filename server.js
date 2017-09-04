@@ -170,7 +170,18 @@ app.get("/sigmatransaction",function(req,res){
   find_in_db_var2(transArr,single_sigma_callback,res,null,null,null,isLabel)
 })//end of app get sigmatransaction
 
-
+app.get("/sigmatransactiondynamic",function(req,res){
+  var transaction = req.query.transaction; // should be one singular transaction
+  var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  sigmatransaction request %%%%%%%%%%%%%%%%%%%%%% with labels?: "+isLabel)
+  console.log("received sigmatransaction request for "+transaction)
+  transaction=transaction.toString();
+  var transArr =[];
+  transArr.push(transaction);
+  var find_in_db_var2 = helper_functions.find_in_db;
+  var single_sigma_callback_each_edge = sigmajs_routes.single_sigma_callback_each_edge;
+  find_in_db_var2(transArr,single_sigma_callback_each_edge,res,null,null,null,isLabel)
+})//end of app get sigmatransaction
 
 app.get("/sigmamulti",function(req,renderres){
   var startblock = req.query.startblock;

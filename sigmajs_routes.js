@@ -8,10 +8,50 @@ module.exports={
   },
   sigmacontractCallback: function(contractTransList,found_trans,res,viewContract,_startBlock,_endBlock){
     sigmacontractCallback(contractTransList,found_trans,res,viewContract,_startBlock,_endBlock)
+  },
+  single_sigma_callback_each_edge: function(transArr,found_trans,res,_a,_b,_c,isLabel){
+    single_sigma_callback_each_edge(transArr,found_trans,res,_a,_b,_c,isLabel)
   }
 }
 
-
+var single_sigma_callback_each_edge = function(transArr,found_trans,res,_a,_b,_c,isLabel){ //_a,_b,_c are dummy variables
+  //find in db will either find an empty db or the transaction
+  var response_sigma=[];
+  if(found_trans.length<transArr.length){//there was nothing found -- was found_trans.length ==0
+    res.send("refresh shortly")
+    graph_gen_for_contract.gen_graph_promise(transArr)//this function takes an array
+  }
+  else{
+    //now combine, remember there many be more than one since a transaction has several depth levels
+    var multiobj = generateSigmaCombinedObject(found_trans) //think problem here! with a jump edge or something
+    var transArr=[];
+    found_trans.forEach(function(each){
+      transArr.push(each.randomHash)
+    })
+    console.log("transArr "+transArr)
+    var titleTrans="";
+    for(var index=0; index < transArr.length;index++){
+      if(transArr[index]!=null){
+        titleTrans=transArr[index].slice(0,transArr.length-3)
+        break;
+      }
+    }
+    console.log("titleTrans is "+titleTrans)
+    console.log("islabel is "+isLabel)
+    if(isLabel == undefined){
+      isLabel =0
+    }
+    console.log("rendering...")
+    res.render("sigma_dynamically_add.ejs",{
+      isLabel:isLabel,
+      titleTrans:titleTrans,
+      transArr:transArr,
+      num_block:"10000", //dummy values so we can use sigmamulti template
+      block_num:"100",
+      sigmaobj_multi:multiobj
+    })
+  }
+}
 
 
 var single_sigma_callback = function(transArr,found_trans,res,_a,_b,_c,isLabel){ //_a,_b,_c are dummy variables

@@ -4,3 +4,4 @@ node_modules/*/*
 fileuploads/
 package-lock.json
 run_main
+results/*

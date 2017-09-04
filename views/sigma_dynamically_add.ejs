@@ -1,0 +1,169 @@
+<html>
+<head>
+  <script src="../../sigma.min.js"></script>
+  <script src="../../sigma.layout.forceAtlas2.min.js"></script>
+  <script src="../../sigma.parsers.json.min.js"></script>
+
+
+</head>
+<style>
+  #network-graph {
+    top: 150;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    background: black
+  }
+</style>
+
+
+<body>
+<div id="headr">
+<body style="background-color:#000000">
+<h1 id = "header1" style="color:white;"> You are visualising a SigmaJS representation of <%=titleTrans%> </h1>
+</div>
+<br>
+
+<div id = "network-graph"></div>
+<script>
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+var isLabel = getParameterByName('isLabel'); // "lorem"
+var startblock = getParameterByName("startblock")
+var endblock = getParameterByName("endblock")
+if(endblock != undefined){
+      var mainheader = document.getElementById("header1")
+      var mainheader_text = "You are visualising a SigmaJS representation of transactions in blocks ";
+      mainheader_text=mainheader_text.concat(startblock)
+      mainheader_text=mainheader_text.concat(" to ")
+      mainheader_text=mainheader_text.concat(endblock)
+      mainheader.innerHTML =mainheader_text
+}
+</script>
+<script>
+//this is working
+window.onload=function(){
+    console.log("script loaded")
+
+    var graphSettings = {
+      minNodeSize: 5,
+      maxNodeSize: 5
+      // minEdgeSize: 10,
+      // maxEdgeSize: 10,
+      // scalingMode: "inside",
+      // sideMargin: 10
+    }
+
+    var forceConfig = {
+      worker: true
+      // barnesHutOptimize: true,
+      // startingIterations: 100,
+      // gravity: 5,
+      // strongGravityMode:true,
+      // slowDown: 3
+    }
+    var emptySigmaObj={
+      nodes:[],
+      edges:[]
+    }
+
+    var s = new sigma({
+      graph: emptySigmaObj,
+      container: "network-graph",
+      settings: graphSettings
+    })
+
+
+
+    if(isLabel){
+      var _labelThreshold = 0;
+    }
+    else{
+      var _labelThreshold = 8;
+    }
+    s.settings({
+      defaultLabelColor:"#ffffff", //f44242
+      labelThreshold: _labelThreshold,
+      defaultLabelSize: 10           //delete this for no labels,
+      // // labelSize: "proportional"
+    });
+
+
+
+    var sigmaobj = <%- JSON.stringify(sigmaobj_multi) %>
+    console.log("sigmaobj is "+JSON.stringify(sigmaobj));
+    //dynamically creating divs and then using this to place multiple graphs
+    console.log("number of edges:" +sigmaobj.edges.length)
+    console.log("number of nodes:" +sigmaobj.nodes.length)
+    var edgeCounter =0
+    var nodeCounter=0;
+    function addNode(){
+      var newNode=sigmaobj.nodes[nodeCounter]
+      console.log("newNode is "+JSON.stringify(newNode));
+      console.log("index is "+nodeCounter)
+      s.graph.addNode(newNode)
+      nodeCounter++;
+      s.refresh()
+    }
+    function addEdge(){
+      //must first check that the nodes are there
+
+      var newEdge=sigmaobj.edges[edgeCounter]
+      console.log("newEdge is "+JSON.stringify(newEdge));
+      console.log("index is "+edgeCounter)
+      if(newEdge.target>nodeCounter){
+        return;
+      }
+
+
+      s.graph.addEdge(newEdge)
+      edgeCounter++;
+      s.refresh()
+    }
+    function test(){
+      console.log("testing")
+    }
+    addNode()
+    addNode()
+
+    function activateAutoMode(){
+      console.log("AutoMode Enabled")
+      setInterval(addNode,2000)
+            setInterval(addEdge,2000)
+    }
+    //Start Force Atlas algorithm
+    s.startForceAtlas2(forceConfig);
+    document.getElementById("addEdgeBtn").addEventListener("click",addEdge);
+    document.getElementById("addNodeBtn").addEventListener("click",addNode);
+    document.getElementById("chk").addEventListener("click",activateAutoMode);
+
+  console.log("script finished")
+
+
+}//onload
+</script>
+<script>
+
+</script>
+
+<button id="addNodeBtn">Add Node</button>
+<button id="addEdgeBtn">Add Edge</button>
+<input type=checkbox id="chk" accesskey=c />
+
+
+</body>
+
+
+
+
+
+
+</html>
