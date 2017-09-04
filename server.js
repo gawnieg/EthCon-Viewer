@@ -46,6 +46,7 @@ try{
   else{//now connect other instances required
     graph_gen.setGethURL(connectionURL);
     graph_gen_for_contract.setGethURL(connectionURL);
+    graph_gen_per_transaction.setGethURL(connectionURL);
     misc_routes.setGethURL(connectionURL)
   }
 }
@@ -135,7 +136,6 @@ app.get("/graphviztransaction",function(req,res){
   transArr.push(transaction);
   var graphvizCallback = graphviz_routes.graphvizCallback;
   var find_in_db_var = helper_functions.find_in_db;
-  console.log("here")
   find_in_db_var(transArr,graphvizCallback,res)
 })
 
@@ -194,29 +194,6 @@ app.get("/sigmamulti",function(req,renderres){
     const constructURLs = helper_functions.constructURLs
     var urls=constructURLs(block_list); //construct urls for blocks - this goes to etherchain and gets the transactions from there
   }
-  //for request
-  /*
-  function httpGet(url, callback) {
-    const options = {
-      url :  url,
-      json : true
-    };
-    request(options,
-      function(err, res, body) {
-        console.log("calling callback")
-        callback(err, body);
-      }
-    );
-  }
-  function constructURLs(block_list){ // function that builds the etherscan lookup urls from the blocknumbers passed
-    var urls =[];
-    block_list.forEach(function(bn){
-      var eachURL = "https://etherchain.org/api/block/"+bn+"/tx";
-      urls.push(eachURL);
-    })
-    return urls;
-  }
-  */
   var httpGet = helper_functions.httpGet;
   async.map(urls, httpGet, function (err, res){ // this function is the callback to httpGet
     if (err) return console.log(err);
@@ -445,7 +422,7 @@ app.get("/sigmacontract",function(req,res){
   var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  Sigma contract view request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  var lookupEtherscan = helper_functions.lookupEtherscan;
+  // var lookupEtherscan = helper_functions.lookupEtherscan;
   lookupEtherscan(viewContract,_startBlock,_endBlock,testORmain).then(function(contractTransList,err){
     if(err){
       console.log("there was an error with etherscan api lookup")
@@ -496,7 +473,7 @@ var sigmacontractCallback = function(contractTransList,found_trans,res,viewContr
 
 
 
-/*
+
 var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
 
     //takes in the contract address, the start block and the end block and
@@ -555,7 +532,7 @@ var lookupEtherscan = function(viewContract,_startBlock,_endBlock){
       })
   })
 }
-*/
+
 
 
 
@@ -577,7 +554,6 @@ app.get("/gtcontract",function(req,res){
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  gtcontract request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
   console.log("want to trans for view: "+viewContract+" between "+_startBlock + " and "+_endBlock);
-  var lookupEtherscan = helper_functions.lookupEtherscan;
   lookupEtherscan(viewContract,_startBlock,_endBlock).then(function(contractTransList,err){
     if(err){
       console.log("there was an error with etherscan api lookup")
@@ -697,7 +673,7 @@ app.get("/checktrans",function(req,res){
   var transaction = req.query.transaction;
   transaction=transaction.toString()
   console.log("#################\nThe sanity checker has been called for the transaction: \n ########################\n"+transaction)
-  var checkTrans = misc_routes.checkTrans;
+  // var checkTrans = misc_routes.checkTrans;
   checkTrans(transaction).then(function (result) {
     // console.log("rendering"+result)
     if(result===undefined){
@@ -711,7 +687,7 @@ app.get("/checktrans",function(req,res){
       console.log("there was an error in the sendAsync function: "+err)
   });
 })
-/*
+
 var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/questions/34736705/how-to-promisify-this-function-nodejs
   return new Promise(function(resolve,reject){
     web3.currentProvider.sendAsync({
@@ -733,7 +709,7 @@ var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/qu
       );
   })
 }
-*/
+
 
 
 
