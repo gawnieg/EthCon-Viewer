@@ -37,7 +37,7 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 var noLinks = getParameterByName('noLinks'); // "lorem"
-
+console.log("no links: "+noLinks)
 var picsToView = <%- JSON.stringify(picArr)%>
 var testORmain =  <%- JSON.stringify(testORmain)%>
 console.log("picsToView:"+picsToView)
@@ -72,10 +72,15 @@ for(var blockd=0;blockd<picArr.length;blockd++){
       var link = document.createElement("A");
       var viewtrans = document.createElement("A");
       var viewinnovation = document.createElement("A");
+      var viewGraphViz = document.createElement("A");
+
+
 
       link.innerHTML = "<br>View on Etherscan"
       viewtrans.innerHTML = " | View Tx SigmaJS | "
-      viewinnovation.innerHTML = "View EVM Innovocation SigmaJS"
+      viewinnovation.innerHTML = "View EVM Invocation SigmaJS <br>"
+      viewGraphViz.innerHTML= "View EVM Invocation GraphViz"
+
       // now construct link
       var etherscanURL;
       if(testORmain=="test"){
@@ -94,12 +99,17 @@ for(var blockd=0;blockd<picArr.length;blockd++){
       console.log("depthoftransactionurl: "+depthoftransactionurl)
       var viewinnovationlink = "/depthoftransaction?transaction="+depthoftransactionurl;
       viewinnovation.href = viewinnovationlink;
+      var viewGraphVizurl = "/graphvizInvocation?transaction="+depthoftransactionurl;
+      viewGraphViz.href=viewGraphVizurl;
+
+
       console.log("picArr[blockd] trans_slice is "+trans_slice)
       console.log("etherscanURL is "+etherscanURL)
       link.href = etherscanURL;
       caption.appendChild(link)
       caption.appendChild(viewtrans)
       caption.appendChild(viewinnovation)
+      caption.appendChild(viewGraphViz)
 
 
 

@@ -147,7 +147,7 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
             // console.log("trace found and graph made ...now going to make graph tools pic")
 
             var modifiedjsonfordisplay = TwoDarraymodified[graph_depth];
-            console.log("modifiedjsonfordisplay is "+modifiedjsonfordisplay)
+            // console.log("modifiedjsonfordisplay is "+modifiedjsonfordisplay)
             //save to db
             db2.save_trans_to_db(contracts_trans_list[int_trans],
               res_str,res_str_gml,

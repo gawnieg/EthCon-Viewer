@@ -31,7 +31,7 @@ var single_sigma_callback_each_edge = function(transArr,found_trans,res,_a,_b,_c
       transArr.push(each.randomHash)
       modifiedjsonArr.push(each.modifiedjson)
     })
-    console.log("transArr "+transArr)
+    // console.log("transArr "+transArr)
     var titleTrans="";
     for(var index=0; index < transArr.length;index++){
       if(transArr[index]!=null){
@@ -53,7 +53,7 @@ var single_sigma_callback_each_edge = function(transArr,found_trans,res,_a,_b,_c
           var single_step = {"step":modifiedjsonArr[index][index_1].step,
                               "op": modifiedjsonArr[index][index_1].op,
                           "stackUpStream": modifiedjsonArr[index][index_1].arg_origins}
-          console.log("setting "+JSON.stringify(single_step))
+          // console.log("setting "+JSON.stringify(single_step))
           EducationObjectArr.push(single_step);
 
         }

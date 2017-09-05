@@ -432,7 +432,7 @@ app.get("/gtdisplayall",function(req,res){ // route that finds all the file name
       var picArr = items;
       console.log("found "+picArr.length + " images");
       res.render("gtdisplayall.ejs",{
-        testORmain,testORmain,
+        testORmain:testORmain,
         picArr:picArr
       })
   });
@@ -501,6 +501,11 @@ app.get("/depthoftransaction",function(req,res){
   find_depth_in_db(depthTransArr,single_sigma_callback,res)
 
 })
+
+
+
+
+
 
 ///new route to delete tranactions from db
 app.get("/deleteContractFromDB",function(req,res){
