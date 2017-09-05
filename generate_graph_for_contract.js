@@ -146,6 +146,8 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
             allColoursPerTrans.push(graphtools_color);
             // console.log("trace found and graph made ...now going to make graph tools pic")
 
+            var modifiedjsonfordisplay = TwoDarraymodified[graph_depth];
+            console.log("modifiedjsonfordisplay is "+modifiedjsonfordisplay)
             //save to db
             db2.save_trans_to_db(contracts_trans_list[int_trans],
               res_str,res_str_gml,
@@ -155,7 +157,8 @@ function web3call(int_trans, contracts_trans_list){ //int_trans will be bound to
               graphtools_color,
               num_return,
               graph_depth,
-              tempname); //passing block number, transaction_no, graph output
+              tempname,
+            modifiedjsonfordisplay); //passing block number, transaction_no, graph output
 
               // console.log(res_str_dot_no_lbl); // added for debgging graph tool colours
               // console.log(graphtools_color)

@@ -25,8 +25,11 @@ var single_sigma_callback_each_edge = function(transArr,found_trans,res,_a,_b,_c
     //now combine, remember there many be more than one since a transaction has several depth levels
     var multiobj = generateSigmaCombinedObject(found_trans) //think problem here! with a jump edge or something
     var transArr=[];
+
+    var modifiedjsonArr =[];//to store json for display
     found_trans.forEach(function(each){
       transArr.push(each.randomHash)
+      modifiedjsonArr.push(each.modifiedjson)
     })
     console.log("transArr "+transArr)
     var titleTrans="";
@@ -41,8 +44,33 @@ var single_sigma_callback_each_edge = function(transArr,found_trans,res,_a,_b,_c
     if(isLabel == undefined){
       isLabel =0
     }
+    //now create a new object for displaying
+    function createEducationObject(modifiedjsonArr){
+      var EducationObjectArr=[];
+
+      for(var index=0; index<modifiedjsonArr.length;index++){
+        for(var index_1=0; index_1<modifiedjsonArr[index].length; index_1++){
+          var single_step = {"step":modifiedjsonArr[index][index_1].step,
+                              "op": modifiedjsonArr[index][index_1].op,
+                          "stackUpStream": modifiedjsonArr[index][index_1].arg_origins}
+          console.log("setting "+JSON.stringify(single_step))
+          EducationObjectArr.push(single_step);
+
+        }
+        }
+        return EducationObjectArr;
+      }
+
+    var EducationObjectArr=createEducationObject(modifiedjsonArr)
+    // console.log(JSON.stringify(EducationObjectArr))
+
     console.log("rendering...")
+
+
+
+
     res.render("sigma_dynamically_add.ejs",{
+      modifiedjson:EducationObjectArr,
       isLabel:isLabel,
       titleTrans:titleTrans,
       transArr:transArr,

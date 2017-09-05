@@ -11,7 +11,7 @@
     top: 150;
     bottom: 0;
     left: 0;
-    right: 0;
+    right: 70%;
     position: absolute;
     background: black
   }
@@ -22,10 +22,14 @@
 <div id="headr">
 <body style="background-color:#000000">
 <h1 id = "header1" style="color:white;"> You are visualising a SigmaJS representation of <%=titleTrans%> </h1>
+<button id="addNodeBtn">Add Node</button>
+<button id="addEdgeBtn">Add Edge</button>
+<input type=checkbox id="chk" accesskey=c />
 </div>
 <br>
 
 <div id = "network-graph"></div>
+<div id="forjson" style="overflow-y: auto;overflow-x: hidden; height:100%; width:30%; float:right; background-color:#ffffff ">
 <script>
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -54,8 +58,8 @@ window.onload=function(){
     console.log("script loaded")
 
     var graphSettings = {
-      minNodeSize: 1,
-      maxNodeSize: 1
+      minNodeSize: 3,
+      maxNodeSize: 3
       // minEdgeSize: 10,
       // maxEdgeSize: 10,
       // scalingMode: "inside",
@@ -95,8 +99,8 @@ window.onload=function(){
       defaultLabelSize: 10           //delete this for no labels,
       // // labelSize: "proportional"
     });
-
-
+    var modifiedjson = <%- JSON.stringify(modifiedjson) %>
+    console.log(JSON.stringify(modifiedjson))
 
     var sigmaobj = <%- JSON.stringify(sigmaobj_multi) %>
     console.log("sigmaobj is "+JSON.stringify(sigmaobj));
@@ -111,6 +115,11 @@ window.onload=function(){
       console.log("index is "+nodeCounter)
       s.graph.addNode(newNode)
       nodeCounter++;
+      var jsonpanel = document.getElementById("forjson");
+      jsonpanel.innerHTML += JSON.stringify(modifiedjson[nodeCounter],null," ")
+      jsonpanel.innerHTML+= "<br>"
+      // jsonpanel.scrollIntoView();
+      jsonpanel.scrollTop = jsonpanel.scrollHeight;
       s.refresh()
     }
     function addEdge(){
@@ -168,9 +177,7 @@ window.onload=function(){
 
 </script>
 
-<button id="addNodeBtn">Add Node</button>
-<button id="addEdgeBtn">Add Edge</button>
-<input type=checkbox id="chk" accesskey=c />
+
 
 
 </body>
