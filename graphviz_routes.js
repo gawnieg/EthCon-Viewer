@@ -69,7 +69,7 @@ var graphvizCallback = function(contractTransList,found_trans,res){
     //now render to screen
     console.log("rendering screen ejs")
     console.log("transArr is "+transArr)
-    res.render("viz.ejs",{
+    res.render("welcome.ejs",{ // was viz.ejs
       transArr:transArr,
       block_num:"1000",
       num_block:"10",

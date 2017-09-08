@@ -18,15 +18,14 @@ var web3 = new Web3();
 const graph_tool_routes = require("./graph_tool_routes.js")
 const misc_routes = require("./misc_routes.js")
 
-//var url = "mongodb://localhost:27017/test?socketTimeoutMS=90000";
+
 var url = "mongodb://localhost:27017/test";
 var testORmain = ""; //to indicate if it is testnet or main net
 app.set('view engine','ejs')
-//app.use(express.static('src'))
 app.use(express.static(__dirname+'/public'));
 app.use(bodyParser.json())
-//reading in from commandline
 
+//reading in from commandline
 var connectionURL ="http://localhost:8545"; //default
 process.argv.forEach(function (val, index, array) {
   if(index ==2 ){
@@ -53,7 +52,7 @@ try{
 catch(err){
   console.log("Chucking error for connecting to Geth" +err);
 }
-// set testORmain in modules
+
 
 
 
@@ -64,66 +63,6 @@ app.get("/",function(req,res){
 })
 
 
-
-// uses vis.js library
-app.get('/vis', function(req, res) {
-  var block_num = req.query.block_num; // read in from URL
-  var num_block = req.query.num_block;
-  console.log("------------NEW BROWSER REQUEST FOR VIS-------")
-  console.log("received block_num:" + block_num +" ,num_block:" + num_block);
-
-  /*
-  Search for block in database. If it is not there then generate the blocks
-  */
-  var upper_block_limit = parseInt(block_num) + parseInt(num_block);
-  var response_graphviz=[];
-  var response_sigma =[]; //making array of objects
-  for(var block= parseInt(block_num); block < upper_block_limit; block++){ //move this loop? as cannot set headers after sent
-    mp.MongoClient.connect(url)
-      .then(function(db){
-              return db.collection('test')
-                  .then(function(col) {
-                      return col.find({block_num : block_num}).toArray()
-                          .then(function(items) {
-                            if(items.length){
-                              console.log("found "+items.length+" graphviz items for this block in DB!")
-                              for(i=0;i<items.length;i++){
-                                var r = items[i].graph;
-                                r=r.toString();
-                                response_graphviz.push(r)
-                                console.log("typeof r is "+typeof(r))
-                              }
-                            db.close()
-                            .then(function(){
-                              console.log("yurt - this is a promise .then")
-                            })
-                            .then(function (){
-                                console.log("rendering screen ejs")
-                                res.render("index.ejs",{
-                                  block_num:block_num,
-                                  num_block:num_block,
-                                  graph_formats: response_graphviz
-                                });
-                            });
-                            }
-                            else{
-                              console.log("found nothing in DB so adding block no. "+block_num +" to db ");
-                              //add the specified graphs to the database
-                              add_blocks_graph_to_db(block_num,1);// 1 is blank does nt matter what
-                            }
-
-                          })
-
-              })
-  })
-  .fail(function(err) {console.log(err)});
-  }
-
-});//end of express route
-
-
-
-
 /////////////////////////////////////////////////////////////////////////////////
                             //graphviz routes
 /////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +70,7 @@ const graphviz_routes = require("./graphviz_routes.js")
 const helper_functions = require("./helper_functions.js")
 app.get("/graphviztransaction",function(req,res){
   var transaction = (req.query.transaction).toString()
-  console.log("#######################    GraphViz called for "+ transaction);
+  console.log("###########   GraphViz called for "+ transaction+"############");
   var transArr=[];
   transArr.push(transaction);
   var graphvizCallback = graphviz_routes.graphvizCallback;
@@ -144,7 +83,7 @@ app.get("/graphvizInvocation",function(req,res){ // graphviz for single EVM invo
   var transaction = (req.query.transaction).toString()
   var transArr=[];
   transArr.push(transaction);
-  console.log("#######################    GraphViz Invocation called for "+ transaction);
+  console.log("###########    GraphViz Invocation called for "+ transaction+"############");
   var graphvizCallbackEVMInvocation = graphviz_routes.graphvizCallbackEVMInvocation;
   var find_depth_in_db_var = helper_functions.find_depth_in_db;
   find_depth_in_db_var(transArr,graphvizCallbackEVMInvocation,res)
@@ -152,9 +91,8 @@ app.get("/graphvizInvocation",function(req,res){ // graphviz for single EVM invo
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
-                                  // end of graphviz route
+                                  // SigmaJS Routes
 ////////////////////////////////////////////////////////////////////////////////
 const sigmajs_routes = require("./sigmajs_routes.js")
 app.get("/sigmatransaction",function(req,res){
@@ -408,8 +346,7 @@ var checkTrans = function(_passed_trans,display){ //https://stackoverflow.com/qu
 
 
 
-//_-----------------------------------------------------------------------------------------------------------------------------------
-//adding new route to pull graphml format from it, might be overkill
+// route that returns graphml format
 app.get("/getgraphml",function(req,res){
   var transaction = req.query.transaction;
   transaction=transaction.toString()
