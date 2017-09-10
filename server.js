@@ -77,6 +77,15 @@ app.get("/graphviztransaction",function(req,res){
   var find_in_db_var = helper_functions.find_in_db;
   find_in_db_var(transArr,graphvizCallback,res)
 })
+app.get("/welcome",function(req,res){
+  var transaction = (req.query.transaction).toString()
+  console.log("###########   GraphViz called for "+ transaction+"############");
+  var transArr=[];
+  transArr.push(transaction);
+  var graphvizCallback = graphviz_routes.welcomeCallback;
+  var find_in_db_var = helper_functions.find_in_db;
+  find_in_db_var(transArr,graphvizCallback,res)
+})
 
 
 app.get("/graphvizInvocation",function(req,res){ // graphviz for single EVM invocation
