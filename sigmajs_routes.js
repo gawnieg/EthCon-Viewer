@@ -44,6 +44,7 @@ var single_sigma_callback_each_edge = function(transArr,found_trans,res,_a,_b,_c
     if(isLabel == undefined){
       isLabel =0
     }
+    console.log(JSON.stringify(multiobj))
     //now create a new object for displaying
     function createEducationObject(modifiedjsonArr){
       var EducationObjectArr=[];
