@@ -144,7 +144,9 @@ app.get("/sigmaspecial",function(req,res){
 "0xd2d6cc6fc8b952718c33ea436c12b96ec418f78f70cb8c2e6662741839c0b37c", //testControl(5)
 "0xf90adc5ba08144e85e8f8239b2899e78d871fbf367b7dc93f363d049501976ea", //non optimsied solidity
 "0x0aaff7be410e85f64930363d5aab3f502e9b8539040410698a7564e323e7c44e", //optimised solidity
-"0x736e4a0acfb292922564e1d1334f6cad6aef1d3f8833d9ceb62cc719c8bc2c54" ]//LLL
+"0x736e4a0acfb292922564e1d1334f6cad6aef1d3f8833d9ceb62cc719c8bc2c54",//LLL
+"0x427915511edf4256c8893efda569960db8672526f9386d75d3d901614b4c4aea", // test loop 4,5
+"0xb06f98f3a1276d0861dd8d671de672b1457c2a04b140955ed2b6aa25dd56ee3a" ] // test loop 4,50
   var find_in_db_special = helper_functions.find_in_db_import;
   var single_sigma_callback = sigmajs_routes.single_sigma_callback;
   find_in_db_special(transArr,single_sigma_callback,res,null,null,null,isLabel)
