@@ -147,7 +147,7 @@ app.get("/sigmaspecial",function(req,res){
 "0x736e4a0acfb292922564e1d1334f6cad6aef1d3f8833d9ceb62cc719c8bc2c54" ]//LLL
   var find_in_db_special = helper_functions.find_in_db_import;
   var single_sigma_callback = sigmajs_routes.single_sigma_callback;
-  find_in_db_var2(transArr,single_sigma_callback,res,null,null,null,isLabel)
+  find_in_db_special(transArr,single_sigma_callback,res,null,null,null,isLabel)
 })//end of app get sigmatransaction
 
 
