@@ -130,6 +130,32 @@ app.get("/sigmatransactiondynamic",function(req,res){
   find_in_db_var2(transArr,single_sigma_callback_each_edge,res,null,null,null,isLabel)
 })//end of app get sigmatransaction
 
+
+
+//special route for presentation
+app.get("/sigmaspecial",function(req,res){
+  var isLabel = parseInt(req.query.isLabel); // is 1 if labels are desired
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  sigmatransaction request %%%%%%%%%%%%%%%%%%%%%% with labels?: "+isLabel)
+  var transArr =["0xabc34d89f50cf3ccee34cfbf03d3ed1e4d2ea050c598004bae70ab56188601de",//simple auction deployment
+"0x80a922e6fc5921416f512f79df8e93c56993ae90e7de1977c31e2e4fe8e3a5dc", //simple auction
+"0xf154d11167486a4468a6c42e6d002144719e4fb9a31a442e16c7c9c1110ff47c", // modified auction
+"0x3017ef6158fdbcee2b2b3d7ca262f2c721bc2dd7c0584ada500c23583e05c677", //testing events
+"0xff4e75d08471adc538b75908e3f3d34175b99fbd0bec87045f862b008c32f1c1", //testControl(10)
+"0xd2d6cc6fc8b952718c33ea436c12b96ec418f78f70cb8c2e6662741839c0b37c", //testControl(5)
+"0xf90adc5ba08144e85e8f8239b2899e78d871fbf367b7dc93f363d049501976ea", //non optimsied solidity
+"0x0aaff7be410e85f64930363d5aab3f502e9b8539040410698a7564e323e7c44e", //optimised solidity
+"0x736e4a0acfb292922564e1d1334f6cad6aef1d3f8833d9ceb62cc719c8bc2c54" ]//LLL
+  var find_in_db_special = helper_functions.find_in_db_import;
+  var single_sigma_callback = sigmajs_routes.single_sigma_callback;
+  find_in_db_var2(transArr,single_sigma_callback,res,null,null,null,isLabel)
+})//end of app get sigmatransaction
+
+
+
+
+
+
+
 app.get("/sigmamulti",function(req,renderres){
   var startblock = req.query.startblock;
   var endblock = req.query.endblock;

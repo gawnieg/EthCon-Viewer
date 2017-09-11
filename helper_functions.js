@@ -13,6 +13,9 @@ module.exports = {
   },
   constructURLs: function(block_list){
     constructURLs(block_list)
+  },
+  find_in_db_import:function(contractTransList,callback,res,_contractName,_numBlocks,_blockNum,_isLabel){
+    find_in_db_import(contractTransList,callback,res,_contractName,_numBlocks,_blockNum,_isLabel)
   }
 }
 
@@ -154,4 +157,29 @@ function constructURLs(block_list){ // function that builds the etherscan lookup
     urls.push(eachURL);
   })
   return urls;
+}
+//special route for presentation
+var find_in_db_import = function(contractTransList,callback,res,_contractName,_numBlocks,_blockNum,_isLabel){
+  /*
+    find_in_db checks the mongodb for the tranactions in contractTransList. Of the ones that are present,
+    it places them in a list. Then callback is then called!
+  */
+  // console.log("find in db called with islabel "+_isLabel)
+  mp.MongoClient.connect("mongodb://127.0.0.1:27017/transImport")
+      .then(function(db){
+              return db.collection('test')
+                  .then(function(col) {
+                      return col.find({transaction_no : {$in: contractTransList}}).sort({transaction_no:1,depthLevel:1}).toArray()
+                          .then(function(items) {
+                              console.log("db replied with "+items.length + "items")
+                              var found_trans =[]
+                              items.forEach(function(item){
+                                found_trans.push(item);//the whole object
+                              })
+
+                              db.close().then(callback(contractTransList,found_trans,res,_contractName,_numBlocks,_blockNum,_isLabel));
+                          })
+              })
+  })
+  .fail(function(err) {console.log(err)});
 }
