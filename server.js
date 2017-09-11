@@ -312,6 +312,12 @@ app.get("/gtcontract",function(req,res){
   // mainnet: http://localhost:3005/gtcontract?contract=0x851b7F3Ab81bd8dF354F0D7640EFcD7288553419&start=3934565&end=3966824
   var viewContract = req.query.contract; // read in from URL
   viewContract=viewContract.toString();
+  var switchNetwork = req.query.network; // is a change of network required?
+  console.log("switchNetwork is : "+switchNetwork)
+  if(switchNetwork >= 1){
+    console.log("network specified we might change...")
+    testORmain=""; //set it to blank
+  }
   var _startBlock = parseInt(req.query.start);
   var _endBlock = parseInt(req.query.end);
   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%  gtcontract request %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
